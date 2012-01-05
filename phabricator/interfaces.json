@@ -1,0 +1,409 @@
+{
+  "arcanist": {
+    "projectinfo": {
+      "required": {
+        "name": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "conduit": {
+    "connect": {
+      "required": {
+        "client": "string",
+        "clientVersion": "int",
+        "host": "string"
+      },
+      "optional": {
+        "clientDescription": "string",
+        "user": "string",
+        "authToken": "int",
+        "authSignature": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getcertificate": {
+      "required": {
+        "token": "string",
+        "host": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "ping": {
+      "required": {},
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "daemon": {
+    "launched": {
+      "required": {
+        "daemon": "string",
+        "host": "string",
+        "pid": "int",
+        "argv": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "log": {
+      "required": {
+        "daemonLogID": "int",
+        "type": "string"
+      },
+      "optional": {
+        "message": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "differential": {
+    "createcomment": {
+      "required": {
+        "revision_id": "int",
+        "message": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "creatediff": {},
+    "createrevision": {},
+    "find": {
+      "required": {
+        "query": "string",
+        "guids": [ "int" ]
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getalldiffs": {},
+    "getcommitmessage": {},
+    "getcommitpaths": {},
+    "getdiff": {},
+    "getrevision": {},
+    "getrevisioncomments": {},
+    "getrevisionfeedback": {},
+    "markcommitted": {},
+    "parsecommitmessage": {},
+    "query": {},
+    "setdiffproperty": {},
+    "updaterevision": {},
+    "updatetaskrevision": {},
+    "updatetaskrevisionassoc": {},
+    "updateunitresults": {}
+  },
+  "diffusion": {
+    "findsymbols": {
+      "required": {},
+      "optional": {
+        "name": "string",
+        "namePrefix": "string",
+        "language": "string",
+        "type": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getcommits": {
+      "required": {
+        "commits": []
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getrecentcommitsbypath": {
+      "required": {
+        "callsign": "string",
+        "path": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "feed": {
+    "publish": {
+      "required": {
+        "type": "string",
+        "data": {},
+        "time": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "file": {
+    "download": {
+      "required": {
+        "phid": "phid"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "info": {
+      "required": {},
+      "optional": {
+        "phid": "phid",
+        "id": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "upload": {
+      "required": {
+        "data_base64": "base64"
+      },
+      "optional": {
+        "name": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "maniphest": {
+    "createtask": {
+      "required": {
+        "title": "string"
+      },
+      "optional": {
+        "description": "string",
+        "ownerPHID": "phid",
+        "ccPHIDs": [ "phid" ],
+        "priority": "int",
+        "projectPHIDs": [ "phid" ],
+        "filePHIDs": [ "phid" ]
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "find": {
+      "required": {},
+      "optional": {
+        "ownerPHID": [ "phid" ],
+        "authorPHIDs": [ "phid" ],
+        "projectPHIDs": [ "phid" ],
+        "ccPHIDs": [ "phid" ],
+        "order": "order",
+        "status": "status",
+        "limit": "int",
+        "offset": "int"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "info": {
+      "required": {
+        "task_id": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "paste": {
+    "create": {
+      "required": {
+        "content": "string"
+      },
+      "optional": {
+        "title": "string",
+        "language": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "info": {
+      "required": {
+        "paste_id": "int"
+      },
+      "optional": [],
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "path": {
+    "getowners": {
+      "required": {
+        "repositoryCallsign": "string",
+        "path": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "phid": {
+    "info": {
+      "required": {
+        "phid": "phid"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "phriction": {
+    "edit": {
+      "required": {
+        "slug": "string"
+      },
+      "optional": {
+        "title": "string",
+        "content": "string",
+        "description": "string"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "history": {
+      "required": {
+        "slug": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "info": {
+      "required": {
+        "slug": "string"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "slowvote": {
+    "info": {
+      "required": {
+        "poll_id": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  },
+  "user": {
+    "find": {
+      "required": {
+        "aliases": [ "string" ]
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "info": {
+      "required": {
+        "phid": "phid"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "whoami": {
+      "required": {},
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
+  }
+}
