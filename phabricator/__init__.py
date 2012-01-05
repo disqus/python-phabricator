@@ -127,7 +127,6 @@ class Resource(object):
         conn.request('POST', path, data, headers)
         response = conn.getresponse()
         result = response.read()
-        print result
 
         # HACK: Handle garbage 'for(;;);' that is leading the json response for some reason...
         if result.startswith('for(;;);'):
