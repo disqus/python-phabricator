@@ -3,8 +3,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='python-phabricator',
-    version='0.1.0',
+    name='phabricator',
+    version='0.1.1',
     author='DISQUS',
     author_email='mike@disqus.com',
     url='http://github.com/disqus/python-phabricator',
