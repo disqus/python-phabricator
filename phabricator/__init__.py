@@ -14,22 +14,23 @@ try:
 except:
     __version__ = 'unknown'
 
-import httplib
-import os.path
 import hashlib
-import simplejson
+import httplib
+import json
+import os.path
+import socket
 import time
 import urllib
 import urlparse
 
-__all__ = ['Conduit', 'Paginator']
+__all__ = ['Phabricator']
 
 # Default phabricator interfaces
-INTERFACES = simplejson.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
+INTERFACES = json.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
 
 # Load ~/.arcrc if it exists
 try:
-    ARCRC = simplejson.loads(open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
+    ARCRC = json.loads(open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
 except IOError:
     ARCRC = None
 
@@ -62,10 +63,12 @@ class Result(object):
         return self.response[key]
 
 class Resource(object):
-    def __init__(self, api, interface=INTERFACES, node=None, method=None):
+    RESPONSE_SHIELD = 'for(;;);'
+
+    def __init__(self, api, interface=INTERFACES, endpoint=None, method=None):
         self.api = api
         self.interface = interface
-        self.node = node
+        self.endpoint = endpoint
         self.method = method
 
     def __getattr__(self, attr):
@@ -74,7 +77,7 @@ class Resource(object):
         interface = self.interface
         if attr not in interface:
             interface[attr] = {}
-        return Resource(self.api, interface[attr], attr, self.node)
+        return Resource(self.api, interface[attr], attr, self.endpoint)
 
     def __call__(self, **kwargs):
         return self._request(**kwargs)
@@ -86,13 +89,12 @@ class Resource(object):
             if k not in [ x.split(':')[0] for x in kwargs.keys() ]:
                 raise ValueError('Missing required argument: %s' % k)
 
-        api = self.api
         conduit = self.api.conduit
 
         if conduit:
             # Already authenticated, add session key to json data
             kwargs['__conduit__'] = conduit
-        elif self.method == 'conduit' and self.node == 'connect':
+        elif self.method == 'conduit' and self.endpoint == 'connect':
             # Not authenticated, requesting new session key
             token = str(int(time.time()))
             kwargs['authToken'] = token
@@ -102,51 +104,57 @@ class Resource(object):
             self.api.connect()
             kwargs['__conduit__'] = self.api.conduit
 
-        # HACK: Deal with odd backslash escaping for URLs
-        if 'host' in kwargs.keys():
-            kwargs['host'] = kwargs['host'].replace('/', '\\/')
-
-        url = urlparse.urlparse(api.host)
+        url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc)
+            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
         else:
-            conn = httplib.HTTPConnection(url.netloc)
+            conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
 
-        path = url.path + '%s.%s' % (self.method, self.node)
+        path = url.path + '%s.%s' % (self.method, self.endpoint)
 
         headers = {
             'User-Agent': 'python-phabricator/%s' % str(self.api.clientVersion),
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        json_data = simplejson.dumps(kwargs, separators=(',',':'))
-        params = urllib.quote_plus(json_data).replace('%5C%5C', '%5C')
-        data = "params=%s&output=%s" % (params, api.response_format,)
+        body = urllib.urlencode({
+            "params": json.dumps(kwargs),
+            "output": self.api.response_format
+        })
 
         # TODO: Use HTTP "method" from interfaces.json
-        conn.request('POST', path, data, headers)
+        conn.request('POST', path, body, headers)
         response = conn.getresponse()
-        result = response.read()
-
-        # HACK: Handle garbage 'for(;;);' that is leading the json response for some reason...
-        if result.startswith('for(;;);'):
-            result = result[8:]
-
-        # Process the response back to python
-        data = api.formats[api.response_format](result)
-
-        if data['error_code']:
-            raise APIError(data['error_code'], data['error_info'])
+        data = self.parse_response(response.read())
 
         return Result(data['result'])
+
+    def parse_response(self, data):
+        # Check for response shield
+        if not data.startswith(self.RESPONSE_SHIELD):
+            raise APIError('', 'Conduit returned an invalid response')
+
+        # Remove repsonse shield
+        if data.startswith(self.RESPONSE_SHIELD):
+            data = data[len(self.RESPONSE_SHIELD):]
+
+        # Process the response back to python
+        parsed = self.api.formats[self.api.response_format](data)
+
+        # Errors return 200, so check response content for exception
+        if parsed['error_code']:
+            raise APIError(parsed['error_code'], parsed['error_info'])
+
+        return parsed
 
 
 class Phabricator(Resource):
     formats = {
-        'json': lambda x: simplejson.loads(x),
+        'json': lambda x: json.loads(x),
     }
 
-    def __init__(self, username=None, certificate=None, host=None, response_format='json', **kwargs):
+    def __init__(self, username=None, certificate=None, host=None,
+            timeout=5, response_format='json', **kwargs):
 
         # Set values in ~/.arcrc as defaults
         if ARCRC:
@@ -158,10 +166,11 @@ class Phabricator(Resource):
             self.username = username
             self.certificate = certificate
 
+        self.timeout = timeout
         self.response_format = response_format
         self.client = 'python-phabricator'
         self.clientVersion = 1
-        self.clientDescription = 'Phabricator Python library'
+        self.clientDescription = socket.gethostname() + ':python-phabricator'
         self.conduit = None
 
         super(Phabricator, self).__init__(self)
@@ -170,7 +179,7 @@ class Phabricator(Resource):
         raise SyntaxError('You cannot call the Conduit API without a resource.')
 
     def connect(self):
-        auth = Resource(api=self, method='conduit', node='connect')
+        auth = Resource(api=self, method='conduit', endpoint='connect')
 
         response = auth(user=self.username, host=self.host,
                 client=self.client, clientVersion=self.clientVersion)
