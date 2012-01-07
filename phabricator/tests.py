@@ -32,6 +32,26 @@ class PhabricatorTest(unittest.TestCase):
         self.assertTrue('sessionKey' in api.conduit.keys())
         self.assertTrue('connectionID' in api.conduit.keys())
 
+    @patch('phabricator.httplib.HTTPConnection')
+    def test_user_whoami(self, mock_connection):
+        mock = mock_connection.return_value = Mock()
+        mock.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
+
+        api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
+        api.conduit = True
+
+        self.assertEqual('testaccount', api.user.whoami()['userName'])
+
+    def test_validation(self):
+        self.api.conduit = True
+
+        with self.assertRaises(ValueError):
+            self.assertRaises(ValueError, self.api.differential.find())
+            self.assertRaises(ValueError, self.api.differential.find(query=1))
+            self.assertRaises(ValueError, self.api.differential.find(query="1"))
+            self.assertRaises(ValueError, self.api.differential.find(query="1", guids="1"))
+            self.assertRaises(ValueError, self.api.differential.find(query="1", guids=["1"]))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -85,9 +85,22 @@ class Resource(object):
     def _request(self, **kwargs):
         # Check for missing variables
         resource = self.interface
+
+        def validate_kwarg(key, target):
+            # Always allow list
+            if isinstance(key, list):
+                return all([validate_kwarg(x, target[0]) for x in key])
+            return type(key).__name__ == target
+
         for k in resource.get('required', []):
             if k not in [ x.split(':')[0] for x in kwargs.keys() ]:
                 raise ValueError('Missing required argument: %s' % k)
+            if isinstance(kwargs.get(k), list) and not isinstance(resource['required'][k], list):
+                raise ValueError('Wrong argument type: %s is not a list' % k)
+            elif not validate_kwarg(kwargs.get(k), resource['required'][k]):
+                if isinstance(resource['required'][k], list):
+                    raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
+                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]) )
 
         conduit = self.api.conduit
 
