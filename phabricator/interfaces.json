@@ -2,7 +2,7 @@
   "arcanist": {
     "projectinfo": {
       "required": {
-        "name": "string"
+        "name": "str"
       },
       "optional": {},
       "method": "POST",
@@ -15,15 +15,15 @@
   "conduit": {
     "connect": {
       "required": {
-        "client": "string",
+        "client": "str",
         "clientVersion": "int",
-        "host": "string"
+        "host": "str"
       },
       "optional": {
-        "clientDescription": "string",
-        "user": "string",
+        "clientDescription": "str",
+        "user": "str",
         "authToken": "int",
-        "authSignature": "string"
+        "authSignature": "str"
       },
       "method": "POST",
       "formats": [
@@ -33,8 +33,8 @@
     },
     "getcertificate": {
       "required": {
-        "token": "string",
-        "host": "string"
+        "token": "str",
+        "host": "str"
       },
       "optional": {},
       "method": "POST",
@@ -56,10 +56,10 @@
   "daemon": {
     "launched": {
       "required": {
-        "daemon": "string",
-        "host": "string",
+        "daemon": "str",
+        "host": "str",
         "pid": "int",
-        "argv": "string"
+        "argv": "str"
       },
       "optional": {},
       "method": "POST",
@@ -71,10 +71,10 @@
     "log": {
       "required": {
         "daemonLogID": "int",
-        "type": "string"
+        "type": "str"
       },
       "optional": {
-        "message": "string"
+        "message": "str"
       },
       "method": "POST",
       "formats": [
@@ -87,7 +87,7 @@
     "createcomment": {
       "required": {
         "revision_id": "int",
-        "message": "string"
+        "message": "str"
       },
       "optional": {},
       "method": "POST",
@@ -100,7 +100,7 @@
     "createrevision": {},
     "find": {
       "required": {
-        "query": "string",
+        "query": "str",
         "guids": [ "int" ]
       },
       "optional": {},
@@ -110,30 +110,194 @@
         "human"
       ]
     },
-    "getalldiffs": {},
-    "getcommitmessage": {},
-    "getcommitpaths": {},
-    "getdiff": {},
-    "getrevision": {},
-    "getrevisioncomments": {},
-    "getrevisionfeedback": {},
-    "markcommitted": {},
-    "parsecommitmessage": {},
-    "query": {},
-    "setdiffproperty": {},
-    "updaterevision": {},
-    "updatetaskrevision": {},
-    "updatetaskrevisionassoc": {},
-    "updateunitresults": {}
+    "getalldiffs": {
+      "required": {},
+      "optional": {
+        "revision_ids": [ "int" ]
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getcommitmessage": {
+      "required": {},
+      "optional": {
+        "revision_ids": "str",
+        "fields": "dict",
+        "edit": "str"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getcommitpaths": {
+      "required": {
+        "revision_id": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getdiff": {
+      "required": {},
+      "optional": {
+        "revision_id": "int",
+        "diff_id": "int"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getrevision": {
+      "required": {
+        "revision_id": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getrevisioncomments": {
+      "required": {
+        "revision_id": [ "int" ]
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "getrevisionfeedback": {
+      "required": {
+        "ids": [ "int" ]
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "markcommitted": {
+      "required": {
+        "revision_id": "int"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "parsecommitmessage": {
+      "required": {
+        "corpus": "str"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "query": {
+      "required": {},
+      "optional": {
+        "authors": [ "str" ],
+        "ccs": [ "str" ],
+        "reviewers": [ "str" ],
+        "commitHashes": [ "str" ],
+        "status": "str",
+        "order": "str",
+        "limit": "int",
+        "offset": "int",
+        "ids": [ "int" ],
+        "phids": [ "str" ],
+        "subscribers": [ "str" ],
+        "responsibleUsers": [ "str" ]
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "setdiffproperty": {
+      "required": {
+        "diff_id": "str",
+        "name": "str",
+        "data": "str"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "updaterevision": {
+      "required": {
+        "id": "str",
+        "diffid": "str",
+        "fields": "dict",
+        "message": "str"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "updatetaskrevisionassoc": {
+      "required": {
+        "task_phid": "str",
+        "orig_rev_phids": [ "str" ],
+        "new_rev_phids": [ "str" ]
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    },
+    "updateunitresults": {
+      "required": {
+        "diff_id": "str",
+        "file": "str",
+        "name": "str",
+        "result": "str",
+        "message": "str"
+      },
+      "optional": {},
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
+    }
   },
   "diffusion": {
     "findsymbols": {
       "required": {},
       "optional": {
-        "name": "string",
-        "namePrefix": "string",
-        "language": "string",
-        "type": "string"
+        "name": "str",
+        "namePrefix": "str",
+        "language": "str",
+        "type": "str"
       },
       "method": "POST",
       "formats": [
@@ -154,8 +318,8 @@
     },
     "getrecentcommitsbypath": {
       "required": {
-        "callsign": "string",
-        "path": "string"
+        "callsign": "str",
+        "path": "str"
       },
       "optional": {},
       "method": "POST",
@@ -168,7 +332,7 @@
   "feed": {
     "publish": {
       "required": {
-        "type": "string",
+        "type": "str",
         "data": {},
         "time": "int"
       },
@@ -183,7 +347,7 @@
   "file": {
     "download": {
       "required": {
-        "phid": "phid"
+        "phid": "str"
       },
       "optional": {},
       "method": "POST",
@@ -195,8 +359,8 @@
     "info": {
       "required": {},
       "optional": {
-        "phid": "phid",
-        "id": "string"
+        "phid": "str",
+        "id": "str"
       },
       "method": "POST",
       "formats": [
@@ -209,7 +373,7 @@
         "data_base64": "base64"
       },
       "optional": {
-        "name": "string"
+        "name": "str"
       },
       "method": "POST",
       "formats": [
@@ -221,15 +385,15 @@
   "maniphest": {
     "createtask": {
       "required": {
-        "title": "string"
+        "title": "str"
       },
       "optional": {
-        "description": "string",
-        "ownerPHID": "phid",
-        "ccPHIDs": [ "phid" ],
+        "description": "str",
+        "ownerPHID": "str",
+        "ccPHIDs": [ "str" ],
         "priority": "int",
-        "projectPHIDs": [ "phid" ],
-        "filePHIDs": [ "phid" ]
+        "projectPHIDs": [ "str" ],
+        "filePHIDs": [ "str" ]
       },
       "method": "POST",
       "formats": [
@@ -240,10 +404,10 @@
     "find": {
       "required": {},
       "optional": {
-        "ownerPHID": [ "phid" ],
-        "authorPHIDs": [ "phid" ],
-        "projectPHIDs": [ "phid" ],
-        "ccPHIDs": [ "phid" ],
+        "ownerPHID": [ "str" ],
+        "authorPHIDs": [ "str" ],
+        "projectPHIDs": [ "str" ],
+        "ccPHIDs": [ "str" ],
         "order": "order",
         "status": "status",
         "limit": "int",
@@ -265,16 +429,38 @@
         "json",
         "human"
       ]
+    },
+    "update": {
+      "required": {},
+      "optional": {
+        "id": "int",
+        "phid": "str",
+        "title": "str",
+        "description": "str",
+        "ownerPHID": "str",
+        "ccPHIDs": [ "str" ],
+        "priority": "int",
+        "projectPHIDs": [ "str" ],
+        "filePHIDs": [ "str" ],
+        "auxiliary": "dict",
+        "status": "int",
+        "comments": "str"
+      },
+      "method": "POST",
+      "formats": [
+        "json",
+        "human"
+      ]
     }
   },
   "paste": {
     "create": {
       "required": {
-        "content": "string"
+        "content": "str"
       },
       "optional": {
-        "title": "string",
-        "language": "string"
+        "title": "str",
+        "language": "str"
       },
       "method": "POST",
       "formats": [
@@ -297,8 +483,8 @@
   "path": {
     "getowners": {
       "required": {
-        "repositoryCallsign": "string",
-        "path": "string"
+        "repositoryCallsign": "str",
+        "path": "str"
       },
       "optional": {},
       "method": "POST",
@@ -311,7 +497,7 @@
   "phid": {
     "info": {
       "required": {
-        "phid": "phid"
+        "phid": "str"
       },
       "optional": {},
       "method": "POST",
@@ -324,12 +510,12 @@
   "phriction": {
     "edit": {
       "required": {
-        "slug": "string"
+        "slug": "str"
       },
       "optional": {
-        "title": "string",
-        "content": "string",
-        "description": "string"
+        "title": "str",
+        "content": "str",
+        "description": "str"
       },
       "method": "POST",
       "formats": [
@@ -339,7 +525,7 @@
     },
     "history": {
       "required": {
-        "slug": "string"
+        "slug": "str"
       },
       "optional": {},
       "method": "POST",
@@ -350,7 +536,7 @@
     },
     "info": {
       "required": {
-        "slug": "string"
+        "slug": "str"
       },
       "optional": {},
       "method": "POST",
@@ -376,7 +562,7 @@
   "user": {
     "find": {
       "required": {
-        "aliases": [ "string" ]
+        "aliases": [ "str" ]
       },
       "optional": {},
       "method": "POST",
@@ -387,7 +573,7 @@
     },
     "info": {
       "required": {
-        "phid": "phid"
+        "phid": "str"
       },
       "optional": {},
       "method": "POST",
