@@ -138,11 +138,11 @@ class Resource(object):
         # TODO: Use HTTP "method" from interfaces.json
         conn.request('POST', path, body, headers)
         response = conn.getresponse()
-        data = self.parse_response(response.read())
+        data = self._parse_response(response.read())
 
         return Result(data['result'])
 
-    def parse_response(self, data):
+    def _parse_response(self, data):
         # Check for response shield
         if not data.startswith(self.RESPONSE_SHIELD):
             raise APIError('', 'Conduit returned an invalid response')
