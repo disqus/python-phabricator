@@ -9,7 +9,7 @@ Use the API by instantiating it, and then calling the method through dotted nota
 
 	from phabricator import Phabricator
 	phab = Phabricator()  # This will use your ~/.arcrc file
-	print phab.user.whoami
+	phab.user.whoami()
 
 Parameters are passed as keyword arguments to the resource call::
 
