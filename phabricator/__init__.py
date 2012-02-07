@@ -62,6 +62,12 @@ class Result(object):
     def __getattr__(self, key):
         return self.response[key]
 
+    def __len__(self):
+        return len(self.response.keys())
+
+    def keys(self):
+        return self.response.keys()
+
 class Resource(object):
     RESPONSE_SHIELD = 'for(;;);'
 
