@@ -69,7 +69,6 @@ class Result(object):
         return self.response.keys()
 
 class Resource(object):
-    RESPONSE_SHIELD = 'for(;;);'
 
     def __init__(self, api, interface=INTERFACES, endpoint=None, method=None):
         self.api = api
@@ -149,14 +148,6 @@ class Resource(object):
         return Result(data['result'])
 
     def _parse_response(self, data):
-        # Check for response shield
-        if not data.startswith(self.RESPONSE_SHIELD):
-            raise APIError('', 'Conduit returned an invalid response')
-
-        # Remove repsonse shield
-        if data.startswith(self.RESPONSE_SHIELD):
-            data = data[len(self.RESPONSE_SHIELD):]
-
         # Process the response back to python
         parsed = self.api.formats[self.api.response_format](data)
 
