@@ -8,7 +8,7 @@ setup(
     author='DISQUS',
     author_email='mike@disqus.com',
     url='http://github.com/disqus/python-phabricator',
-    description = 'Phabricator API Bindings',
+    description='Phabricator API Bindings',
     packages=find_packages(),
     zip_safe=False,
     test_suite='nose.collector',
