@@ -34,7 +34,11 @@ try:
 except IOError:
     ARCRC = None
 
-class InterfaceNotDefined(NotImplementedError): pass
+
+class InterfaceNotDefined(NotImplementedError):
+    pass
+
+
 class APIError(Exception):
     def __init__(self, code, message):
         self.code = code
@@ -43,7 +47,10 @@ class APIError(Exception):
     def __str__(self):
         return '%s: %s' % (self.code, self.message)
 
-class InvalidAccessToken(APIError): pass
+
+class InvalidAccessToken(APIError):
+    pass
+
 
 class Result(object):
     def __init__(self, response):
@@ -68,8 +75,8 @@ class Result(object):
     def keys(self):
         return self.response.keys()
 
-class Resource(object):
 
+class Resource(object):
     def __init__(self, api, interface=INTERFACES, endpoint=None, method=None):
         self.api = api
         self.interface = interface
@@ -98,14 +105,14 @@ class Resource(object):
             return type(key).__name__ == target
 
         for k in resource.get('required', []):
-            if k not in [ x.split(':')[0] for x in kwargs.keys() ]:
+            if k not in [x.split(':')[0] for x in kwargs.keys()]:
                 raise ValueError('Missing required argument: %s' % k)
             if isinstance(kwargs.get(k), list) and not isinstance(resource['required'][k], list):
                 raise ValueError('Wrong argument type: %s is not a list' % k)
             elif not validate_kwarg(kwargs.get(k), resource['required'][k]):
                 if isinstance(resource['required'][k], list):
                     raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
-                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]) )
+                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]))
 
         conduit = self.api.conduit
 
@@ -201,4 +208,3 @@ class Phabricator(Resource):
 
     def generate_hash(self, token):
         return hashlib.sha1(token + self.api.certificate).hexdigest()
-
