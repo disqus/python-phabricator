@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='phabricator',
-    version='0.1.1',
+    version='0.2.0',
     author='DISQUS',
     author_email='mike@disqus.com',
     url='http://github.com/disqus/python-phabricator',
@@ -13,7 +13,7 @@ setup(
     zip_safe=False,
     test_suite='nose.collector',
     install_requires=[''],
-    tests_require=['nose==1.0.0', 'unittest2', 'mock'],
+    tests_require=['nose', 'unittest2', 'mock'],
     include_package_data=True,
     classifiers=[
         'Intended Audience :: Developers',
