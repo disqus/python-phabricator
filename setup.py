@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='phabricator',
-    version='0.2.0',
+    version='0.3.0',
     author='DISQUS',
     author_email='mike@disqus.com',
     url='http://github.com/disqus/python-phabricator',
