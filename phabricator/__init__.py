@@ -18,10 +18,13 @@ import hashlib
 import httplib
 import json
 import os.path
+import re
 import socket
 import time
 import urllib
 import urlparse
+
+from collections import defaultdict
 
 __all__ = ['Phabricator']
 
@@ -33,6 +36,111 @@ try:
     ARCRC = json.loads(open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
 except IOError:
     ARCRC = None
+
+# Map Phabricator types to Python types
+PARAM_TYPE_MAP = {
+    # int types
+    'int': 'int',
+    'uint': 'int',
+    'revisionid': 'int',
+    'revision_id': 'int',
+    'diffid': 'int',
+    'diff_id': 'int',
+    'id': 'int',
+    'enum': 'int',
+
+    # bool types
+    'bool': 'bool',
+
+    # dict types
+    'map': 'dict',
+    'dict': 'dict',
+
+    # list types
+    'list': 'list',
+
+    # tuple types
+    'pair': 'tuple',
+
+    # str types
+    'str': 'str',
+    'string': 'str',
+    'phid': 'str',
+    'guids': 'str',
+    'type': 'str',
+}
+
+STR_RE = re.compile(r'([a-zA-Z_]+)')
+
+
+def map_param_type(param_type):
+    """
+    Perform param type mapping
+    This requires a bit of logic since this isn't standardized.
+    If a type doesn't map, assume str
+    """
+    m = STR_RE.match(param_type)
+    main_type = m.group(0)
+
+    if main_type in ('list', 'array'):
+        info = param_type.replace(' ', '').split('<', 1)
+
+        # Handle no sub-type: "required list"
+        sub_type = info[1] if len(info) > 1 else 'str'
+
+        # Handle list of pairs: "optional list<pair<callsign, path>>"
+        sub_match = STR_RE.match(sub_type)
+        sub_type = sub_match.group(0).lower()
+
+        return [PARAM_TYPE_MAP.setdefault(sub_type, 'str')]
+
+    return PARAM_TYPE_MAP.setdefault(main_type, 'str')
+
+
+def parse_interfaces(interfaces):
+    """
+    Parse the conduit.query json dict response
+    This performs the logic of parsing the non-standard params dict
+        and then returning a dict Resource can understand
+    """
+    parsed_interfaces = defaultdict(dict)
+
+    for m, d in interfaces.iteritems():
+        app, func = m.split('.')
+
+        method = parsed_interfaces[app][func] = {}
+
+        # Make default assumptions since these aren't provided by Phab
+        method['formats'] = ['json', 'human']
+        method['method'] = 'POST'
+
+        method['optional'] = {}
+        method['required'] = {}
+
+        for name, type_info in dict(d['params']).iteritems():
+            # Usually in the format: <optionality> <param_type>
+            info_pieces = type_info.split(' ', 1)
+
+            # If optionality isn't specified, assume required
+            if info_pieces[0] not in ('optional', 'required'):
+                optionality = 'required'
+                param_type = info_pieces[0]
+            # Just make an optional string for "ignored" params
+            elif info_pieces[0] == 'ignored':
+                optionality = 'optional'
+                param_type = 'string'
+            else:
+                optionality = info_pieces[0]
+                param_type = info_pieces[1]
+
+            # This isn't validated by the client
+            if param_type.startswith('nonempty'):
+                optionality = 'required'
+                param_type = param_type[9:]
+
+            method[optionality][name] = map_param_type(param_type)
+
+    return dict(parsed_interfaces)
 
 
 class InterfaceNotDefined(NotImplementedError):
@@ -75,9 +183,13 @@ class Result(object):
     def keys(self):
         return self.response.keys()
 
+    def iteritems(self):
+        for k, v in self.response.iteritems():
+            yield k, v
+
 
 class Resource(object):
-    def __init__(self, api, interface=INTERFACES, endpoint=None, method=None):
+    def __init__(self, api, interface=parse_interfaces(INTERFACES), endpoint=None, method=None):
         self.api = api
         self.interface = interface
         self.endpoint = endpoint
@@ -208,3 +320,10 @@ class Phabricator(Resource):
 
     def generate_hash(self, token):
         return hashlib.sha1(token + self.api.certificate).hexdigest()
+
+    def update_interfaces(self):
+        query = Resource(api=self, method='conduit', endpoint='query')
+
+        interfaces = query()
+
+        self.interface = parse_interfaces(interfaces)
