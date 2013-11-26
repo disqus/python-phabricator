@@ -23,9 +23,13 @@ Parameters are passed as keyword arguments to the resource call::
 
 Documentation on all methods is located at https://secure.phabricator.com/conduit/
 
-Updating interfaces.json
-------------------------
+Interface out-of-date
+---------------------
 
-Copy ``gen_api_interfaces.php`` to  ``scripts/util`` of your Phabricator installation and run it::
+If Phabricator modifies Conduit and the included ``interfaces.json`` is out-of-date or to make sure
+to always have the latest interfaces::
 
-    $ ./gen_api_interfaces.php > interfaces.json
+        from phabricator import Phabricator
+        phab = Phabricator()
+        phab.update_interfaces()
+        phab.user.whoami()
