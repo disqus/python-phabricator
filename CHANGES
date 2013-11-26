@@ -1,3 +1,9 @@
+0.4.0
+
+* Update interfaces.json to Phab @ e75b389
+* Add Phabricator.update_interfaces to pull latest interfaces from conduit.query
+* Fix validation of string to be str or unicode
+
 0.1.0
 
 * Initial release

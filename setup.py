@@ -4,9 +4,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='phabricator',
-    version='0.3.0',
+    version='0.4.0',
     author='DISQUS',
-    author_email='mike@disqus.com',
+    author_email='opensource@disqus.com',
     url='http://github.com/disqus/python-phabricator',
     description='Phabricator API Bindings',
     packages=find_packages(),
