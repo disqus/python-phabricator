@@ -193,9 +193,9 @@ class Result(object):
 
 
 class Resource(object):
-    def __init__(self, api, interface=parse_interfaces(INTERFACES), endpoint=None, method=None):
+    def __init__(self, api, interface=None, endpoint=None, method=None):
         self.api = api
-        self.interface = interface
+        self.interface = interface or parse_interfaces(INTERFACES)
         self.endpoint = endpoint
         self.method = method
 
