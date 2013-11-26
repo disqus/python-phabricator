@@ -41,34 +41,34 @@ except IOError:
 # Map Phabricator types to Python types
 PARAM_TYPE_MAP = {
     # int types
-    'int': 'int',
-    'uint': 'int',
-    'revisionid': 'int',
-    'revision_id': 'int',
-    'diffid': 'int',
-    'diff_id': 'int',
-    'id': 'int',
-    'enum': 'int',
+    'int': int,
+    'uint': int,
+    'revisionid': int,
+    'revision_id': int,
+    'diffid': int,
+    'diff_id': int,
+    'id': int,
+    'enum': int,
 
     # bool types
-    'bool': 'bool',
+    'bool': bool,
 
     # dict types
-    'map': 'dict',
-    'dict': 'dict',
+    'map': dict,
+    'dict': dict,
 
     # list types
-    'list': 'list',
+    'list': list,
 
     # tuple types
-    'pair': 'tuple',
+    'pair': tuple,
 
     # str types
-    'str': 'str',
-    'string': 'str',
-    'phid': 'str',
-    'guids': 'str',
-    'type': 'str',
+    'str': basestring,
+    'string': basestring,
+    'phid': basestring,
+    'guids': basestring,
+    'type': basestring,
 }
 
 STR_RE = re.compile(r'([a-zA-Z_]+)')
@@ -93,9 +93,9 @@ def map_param_type(param_type):
         sub_match = STR_RE.match(sub_type)
         sub_type = sub_match.group(0).lower()
 
-        return [PARAM_TYPE_MAP.setdefault(sub_type, 'str')]
+        return [PARAM_TYPE_MAP.setdefault(sub_type, basestring)]
 
-    return PARAM_TYPE_MAP.setdefault(main_type, 'str')
+    return PARAM_TYPE_MAP.setdefault(main_type, basestring)
 
 
 def parse_interfaces(interfaces):
@@ -219,7 +219,7 @@ class Resource(object):
             # Always allow list
             if isinstance(key, list):
                 return all([validate_kwarg(x, target[0]) for x in key])
-            return type(key).__name__ == target
+            return isinstance(key, target)
 
         for k in resource.get('required', []):
             if k not in [x.split(':')[0] for x in kwargs.keys()]:
