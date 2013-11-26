@@ -14,6 +14,7 @@ try:
 except:
     __version__ = 'unknown'
 
+import copy
 import hashlib
 import httplib
 import json
@@ -195,7 +196,7 @@ class Result(object):
 class Resource(object):
     def __init__(self, api, interface=None, endpoint=None, method=None):
         self.api = api
-        self.interface = interface or parse_interfaces(INTERFACES)
+        self.interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
         self.endpoint = endpoint
         self.method = method
 
