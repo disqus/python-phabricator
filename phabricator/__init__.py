@@ -187,6 +187,10 @@ class Result(object):
         for k, v in self.response.iteritems():
             yield k, v
 
+    def itervalues(self):
+        for v in self.response.itervalues():
+            yield v
+
 
 class Resource(object):
     def __init__(self, api, interface=parse_interfaces(INTERFACES), endpoint=None, method=None):
