@@ -228,8 +228,8 @@ class Resource(object):
                 raise ValueError('Wrong argument type: %s is not a list' % k)
             elif not validate_kwarg(kwargs.get(k), resource['required'][k]):
                 if isinstance(resource['required'][k], list):
-                    raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
-                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]))
+                    raise ValueError('Wrong argument type: %s is not a list of %ss' % (k, resource['required'][k][0]))
+                raise ValueError('Wrong argument type: %s is not a %s' % (k, resource['required'][k]))
 
         conduit = self.api.conduit
 
