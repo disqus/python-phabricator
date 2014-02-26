@@ -231,7 +231,7 @@ class Resource(object):
                     raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
                 raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]))
 
-        conduit = self.api.conduit
+        conduit = self.api._conduit
 
         if conduit:
             # Already authenticated, add session key to json data
@@ -244,7 +244,7 @@ class Resource(object):
         else:
             # Authorization is required, silently auth the user
             self.api.connect()
-            kwargs['__conduit__'] = self.api.conduit
+            kwargs['__conduit__'] = self.api._conduit
 
         url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
@@ -305,7 +305,7 @@ class Phabricator(Resource):
         self.client = 'python-phabricator'
         self.clientVersion = 1
         self.clientDescription = socket.gethostname() + ':python-phabricator'
-        self.conduit = None
+        self._conduit = None
 
         super(Phabricator, self).__init__(self)
 
@@ -318,7 +318,7 @@ class Phabricator(Resource):
         response = auth(user=self.username, host=self.host,
                 client=self.client, clientVersion=self.clientVersion)
 
-        self.conduit = {
+        self._conduit = {
             'sessionKey': response.sessionKey,
             'connectionID': response.connectionID
         }
