@@ -14,6 +14,7 @@ try:
 except:
     __version__ = 'unknown'
 
+import base64
 import copy
 import hashlib
 import httplib
@@ -248,9 +249,9 @@ class Resource(object):
 
         url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
+            conn = httplib.HTTPSConnection(url.hostname, url.port or 443, timeout=self.api.timeout)
         else:
-            conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
+            conn = httplib.HTTPConnection(url.hostname, url.port or 80, timeout=self.api.timeout)
 
         path = url.path + '%s.%s' % (self.method, self.endpoint)
 
@@ -258,6 +259,10 @@ class Resource(object):
             'User-Agent': 'python-phabricator/%s' % str(self.api.clientVersion),
             'Content-Type': 'application/x-www-form-urlencoded'
         }
+
+        if url.username:
+            auth = base64.encodestring('%s:%s' % (url.username, url.password)).strip()
+            headers['Authorization'] = 'Basic %s' % auth
 
         body = urllib.urlencode({
             "params": json.dumps(kwargs),
