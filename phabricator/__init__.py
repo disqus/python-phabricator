@@ -178,6 +178,12 @@ class Result(object):
     def __getattr__(self, key):
         return self.response[key]
 
+    def __getstate__(self):
+        return self.response
+
+    def __setstate__(self, state):
+        self.response = state
+
     def __len__(self):
         return len(self.response.keys())
 
