@@ -107,7 +107,7 @@ def parse_interfaces(interfaces):
     parsed_interfaces = defaultdict(dict)
 
     for m, d in interfaces.iteritems():
-        app, func = m.split('.')
+        app, func = m.split('.', 1)
 
         method = parsed_interfaces[app][func] = {}
 
