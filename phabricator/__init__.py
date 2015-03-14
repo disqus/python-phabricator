@@ -1,8 +1,8 @@
 """
 python-phabricator
 ------------------
->>> api = phabricator.Phabricator()
->>> api.user.whoami().userName
+>> api = phabricator.Phabricator()
+>> api.user.whoami().userName
 'example'
 
 For more endpoints, see https://secure.phabricator.com/conduit/
@@ -30,11 +30,13 @@ from collections import defaultdict
 __all__ = ['Phabricator']
 
 # Default phabricator interfaces
-INTERFACES = json.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
+INTERFACES = json.loads(
+    open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
 
 # Load ~/.arcrc if it exists
 try:
-    ARCRC = json.loads(open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
+    ARCRC = json.loads(
+        open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
 except IOError:
     ARCRC = None
 
@@ -48,7 +50,6 @@ PARAM_TYPE_MAP = {
     'diffid': int,
     'diff_id': int,
     'id': int,
-    'enum': int,
 
     # bool types
     'bool': bool,
@@ -60,6 +61,7 @@ PARAM_TYPE_MAP = {
     # list types
     'list': list,
 
+
     # tuple types
     'pair': tuple,
 
@@ -69,6 +71,7 @@ PARAM_TYPE_MAP = {
     'phid': basestring,
     'guids': basestring,
     'type': basestring,
+    'enum': basestring  # but needs enum checking
 }
 
 STR_RE = re.compile(r'([a-zA-Z_]+)')
@@ -79,6 +82,8 @@ def map_param_type(param_type):
     Perform param type mapping
     This requires a bit of logic since this isn't standardized.
     If a type doesn't map, assume str
+
+
     """
     m = STR_RE.match(param_type)
     main_type = m.group(0)
@@ -101,8 +106,27 @@ def map_param_type(param_type):
 def parse_interfaces(interfaces):
     """
     Parse the conduit.query json dict response
+
     This performs the logic of parsing the non-standard params dict
         and then returning a dict Resource can understand
+
+    >>> interfaces_definition = {"repository.create": {
+    ... "params": {
+    ...            "autocloseEnabled": "optional bool, default = true",
+    ...            "branchFilter": "optional list<string>",
+    ...            "callsign": "required string",
+    ...            "tracking": "optional bool",
+    ...            "uri": "optional string",
+    ...            "vcs": "required enum<git, hg, svn>"
+    ... }}}
+    >>> i = parse_interfaces(interfaces_definition)
+    >>> i
+    {'repository': {'create': {'required': {'callsign': <type 'basestring'>, 'vcs': <type 'basestring'>}, 'optional': {'autocloseEnabled': <type 'bool'>, 'tracking': <type 'bool'>, 'branchFilter': [<type 'basestring'>], 'uri': <type 'basestring'>}, 'method': 'POST', 'formats': ['json', 'human']}}}
+
+    At this stage all I have done is to enable the enum type to work,
+    by treating it as a string.  Further work will be needed to catch enum
+    errors in the client, but this is not vital as the server will return
+    a ERR-UNKNOWN-REPOSITORY-VCS.
     """
     parsed_interfaces = defaultdict(dict)
 
@@ -149,6 +173,7 @@ class InterfaceNotDefined(NotImplementedError):
 
 
 class APIError(Exception):
+
     def __init__(self, code, message):
         self.code = code
         self.message = message
@@ -162,6 +187,7 @@ class InvalidAccessToken(APIError):
 
 
 class Result(object):
+
     def __init__(self, response):
         self.response = response
 
@@ -200,9 +226,11 @@ class Result(object):
 
 
 class Resource(object):
+
     def __init__(self, api, interface=None, endpoint=None, method=None):
         self.api = api
-        self.interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
+        self.interface = interface or copy.deepcopy(
+            parse_interfaces(INTERFACES))
         self.endpoint = endpoint
         self.method = method
 
@@ -231,11 +259,15 @@ class Resource(object):
             if k not in [x.split(':')[0] for x in kwargs.keys()]:
                 raise ValueError('Missing required argument: %s' % k)
             if isinstance(kwargs.get(k), list) and not isinstance(resource['required'][k], list):
-                raise ValueError('Wrong argument type: %s is not a list' % k)
+                raise ValueError(
+                    'Wrong argument type: %s should be a list' % k)
             elif not validate_kwarg(kwargs.get(k), resource['required'][k]):
                 if isinstance(resource['required'][k], list):
-                    raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
-                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]))
+                    raise ValueError(
+                        'Wrong argument type: %s should be a list of %ss' %
+                        (k, resource['required'][k][0]))
+                raise ValueError('Wrong argument type: %s should be of %s' %
+                                 (k, resource['required'][k]))
 
         conduit = self.api.conduit
 
@@ -254,7 +286,8 @@ class Resource(object):
 
         url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
+            conn = httplib.HTTPSConnection(
+                url.netloc, timeout=self.api.timeout)
         else:
             conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
 
@@ -294,13 +327,15 @@ class Phabricator(Resource):
     }
 
     def __init__(self, username=None, certificate=None, host=None,
-            timeout=5, response_format='json', **kwargs):
+                 timeout=5, response_format='json', **kwargs):
 
         # Set values in ~/.arcrc as defaults
         if ARCRC:
             self.host = host if host else ARCRC['hosts'].keys()[0]
-            self.username = username if username else ARCRC['hosts'][self.host]['user']
-            self.certificate = certificate if certificate else ARCRC['hosts'][self.host]['cert']
+            self.username = username if username else ARCRC[
+                'hosts'][self.host]['user']
+            self.certificate = certificate if certificate else ARCRC[
+                'hosts'][self.host]['cert']
         else:
             self.host = host
             self.username = username
@@ -316,13 +351,14 @@ class Phabricator(Resource):
         super(Phabricator, self).__init__(self)
 
     def _request(self, **kwargs):
-        raise SyntaxError('You cannot call the Conduit API without a resource.')
+        raise SyntaxError(
+            'You cannot call the Conduit API without a resource.')
 
     def connect(self):
         auth = Resource(api=self, method='conduit', endpoint='connect')
 
         response = auth(user=self.username, host=self.host,
-                client=self.client, clientVersion=self.clientVersion)
+                        client=self.client, clientVersion=self.clientVersion)
 
         self.conduit = {
             'sessionKey': response.sessionKey,
@@ -338,3 +374,9 @@ class Phabricator(Resource):
         interfaces = query()
 
         self.interface = parse_interfaces(interfaces)
+
+
+# bit weird in a __init__ file
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
