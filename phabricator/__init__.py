@@ -32,11 +32,26 @@ __all__ = ['Phabricator']
 # Default phabricator interfaces
 INTERFACES = json.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
 
-# Load ~/.arcrc if it exists
-try:
-    ARCRC = json.loads(open(os.path.join(os.path.expanduser('~'), '.arcrc'), 'r').read())
-except IOError:
-    ARCRC = None
+# Load arc config
+ARC_CONFIGS = [
+    # System config
+    os.path.join(os.environ['ProgramData'], 'Phabricator', 'Arcanist', 'config') if os.name == 'nt' else
+    os.path.join('/etc', 'arcconfig'),
+
+    # User config
+    os.path.join(os.environ['AppData'] if os.name == 'nt' else os.path.expanduser('~'), '.arcrc'),
+
+    # Project config
+    os.path.join(os.getcwd(), '.arcconfig'),
+
+    # Local project config
+    os.path.join(os.getcwd(), '.git', 'arc', 'config'),
+]
+
+ARCRC = {}
+for conf in ARC_CONFIGS:
+    if os.path.exists(conf):
+        ARCRC.update(json.load(open(conf, 'r')))
 
 # Map Phabricator types to Python types
 PARAM_TYPE_MAP = {
