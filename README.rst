@@ -6,7 +6,7 @@ Installation
 
 ::
 
-	$ python setup.py install
+	$ pip install phabricator
 
 Usage
 -----
@@ -29,7 +29,7 @@ Interface out-of-date
 If Phabricator modifies Conduit and the included ``interfaces.json`` is out-of-date or to make sure
 to always have the latest interfaces::
 
-        from phabricator import Phabricator
-        phab = Phabricator()
-        phab.update_interfaces()
-        phab.user.whoami()
+    from phabricator import Phabricator
+    phab = Phabricator()
+    phab.update_interfaces()
+    phab.user.whoami()

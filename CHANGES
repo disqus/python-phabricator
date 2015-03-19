@@ -1,3 +1,7 @@
+0.5.0
+
+* Add Python 3.3+ support
+
 0.4.0
 
 * Update interfaces.json to Phab @ e75b389
