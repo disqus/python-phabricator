@@ -313,7 +313,17 @@ class Phabricator(Resource):
 
         # Set values in ~/.arcrc as defaults
         if ARCRC:
-            self.host = host if host else ARCRC['hosts'].keys()[0]
+            if host:
+                self.host = host
+            else:
+                hostbase = (ARCRC.get('config', {}).get('phabricator.uri') or
+                            ARCRC.get('config', {}).get('default'))
+                if hostbase:
+                    # Hardcoding the path info to '/api/' to match arcanist.php
+                    # behavior.
+                    self.host = urlparse.urljoin(hostbase, "/api/")
+                else:
+                    self.host = ARCRC['hosts'].keys()[0]
             self.username = username if username else ARCRC['hosts'][self.host]['user']
             self.certificate = certificate if certificate else ARCRC['hosts'][self.host]['cert']
         else:
