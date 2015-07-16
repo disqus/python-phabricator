@@ -14,23 +14,30 @@ try:
 except:
     __version__ = 'unknown'
 
+import collections
 import copy
 import hashlib
-import httplib
 import json
 import os.path
 import re
 import socket
 import time
-import urllib
-import urlparse
 
-from collections import defaultdict
+from ._compat import (
+    MutableMapping, iteritems, string_types, httplib, urlparse, urlencode,
+)
 
 __all__ = ['Phabricator']
 
+
+def get_interfaces():
+    interface_path = os.path.join(os.path.dirname(__file__), 'interfaces.json')
+    with open(interface_path) as fobj:
+        interfaces = fobj.read()
+    return json.loads(interfaces)
+
 # Default phabricator interfaces
-INTERFACES = json.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
+INTERFACES = get_interfaces()
 
 # Load arc config
 ARC_CONFIGS = [
@@ -48,10 +55,16 @@ ARC_CONFIGS = [
     os.path.join(os.getcwd(), '.git', 'arc', 'config'),
 ]
 
-ARCRC = {}
-for conf in ARC_CONFIGS:
-    if os.path.exists(conf):
-        ARCRC.update(json.load(open(conf, 'r')))
+
+def get_config():
+    config = {}
+    for conf in ARC_CONFIGS:
+        if os.path.exists(conf):
+            with open(conf) as fobj:
+                config.update(json.load(fobj))
+    return config
+
+ARCRC = get_config()
 
 # Map Phabricator types to Python types
 PARAM_TYPE_MAP = {
@@ -79,11 +92,11 @@ PARAM_TYPE_MAP = {
     'pair': tuple,
 
     # str types
-    'str': basestring,
-    'string': basestring,
-    'phid': basestring,
-    'guids': basestring,
-    'type': basestring,
+    'str': string_types,
+    'string': string_types,
+    'phid': string_types,
+    'guids': string_types,
+    'type': string_types,
 }
 
 STR_RE = re.compile(r'([a-zA-Z_]+)')
@@ -108,9 +121,9 @@ def map_param_type(param_type):
         sub_match = STR_RE.match(sub_type)
         sub_type = sub_match.group(0).lower()
 
-        return [PARAM_TYPE_MAP.setdefault(sub_type, basestring)]
+        return [PARAM_TYPE_MAP.setdefault(sub_type, string_types)]
 
-    return PARAM_TYPE_MAP.setdefault(main_type, basestring)
+    return PARAM_TYPE_MAP.setdefault(main_type, string_types)
 
 
 def parse_interfaces(interfaces):
@@ -119,9 +132,9 @@ def parse_interfaces(interfaces):
     This performs the logic of parsing the non-standard params dict
         and then returning a dict Resource can understand
     """
-    parsed_interfaces = defaultdict(dict)
+    parsed_interfaces = collections.defaultdict(dict)
 
-    for m, d in interfaces.iteritems():
+    for m, d in iteritems(interfaces):
         app, func = m.split('.', 1)
 
         method = parsed_interfaces[app][func] = {}
@@ -133,7 +146,7 @@ def parse_interfaces(interfaces):
         method['optional'] = {}
         method['required'] = {}
 
-        for name, type_info in dict(d['params']).iteritems():
+        for name, type_info in iteritems(dict(d['params'])):
             # Usually in the format: <optionality> <param_type>
             info_pieces = type_info.split(' ', 1)
 
@@ -176,42 +189,29 @@ class InvalidAccessToken(APIError):
     pass
 
 
-class Result(object):
+class Result(MutableMapping):
     def __init__(self, response):
         self.response = response
-
-    def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, repr(self.response))
-
-    def __iter__(self):
-        for r in self.response:
-            yield r
 
     def __getitem__(self, key):
         return self.response[key]
 
-    def __getattr__(self, key):
-        return self.response[key]
+    __getattr__ = __getitem__
 
-    def __getstate__(self):
-        return self.response
+    def __setitem__(self, key, value):
+        self.response[key] = value
 
-    def __setstate__(self, state):
-        self.response = state
+    def __delitem__(self, key):
+        del self.response[key]
 
     def __len__(self):
         return len(self.response.keys())
 
-    def keys(self):
-        return self.response.keys()
+    def __iter__(self):
+        return iter(self.response)
 
-    def iteritems(self):
-        for k, v in self.response.iteritems():
-            yield k, v
-
-    def itervalues(self):
-        for v in self.response.itervalues():
-            yield v
+    def __repr__(self):
+        return '<%s: %s>' % (type(self).__name__, repr(self.response))
 
 
 class Resource(object):
@@ -240,17 +240,18 @@ class Resource(object):
             # Always allow list
             if isinstance(key, list):
                 return all([validate_kwarg(x, target[0]) for x in key])
-            return isinstance(key, target)
+            return isinstance(key, tuple(target) if isinstance(target, list) else target)
 
-        for k in resource.get('required', []):
+        for k, v in resource.get('required', {}).items():
+            rk = v
             if k not in [x.split(':')[0] for x in kwargs.keys()]:
                 raise ValueError('Missing required argument: %s' % k)
-            if isinstance(kwargs.get(k), list) and not isinstance(resource['required'][k], list):
+            if isinstance(kwargs.get(k), list) and not isinstance(rk, list):
                 raise ValueError('Wrong argument type: %s is not a list' % k)
-            elif not validate_kwarg(kwargs.get(k), resource['required'][k]):
-                if isinstance(resource['required'][k], list):
-                    raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, resource['required'][k][0]))
-                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, resource['required'][k]))
+            elif not validate_kwarg(kwargs.get(k), rk):
+                if isinstance(rk, list):
+                    raise ValueError('Wrong arguemnt type: %s is not a list of %ss' % (k, rk[0]))
+                raise ValueError('Wrong arguemnt type: %s is not a %s' % (k, rk))
 
         conduit = self.api.conduit
 
@@ -280,7 +281,7 @@ class Resource(object):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        body = urllib.urlencode({
+        body = urlencode({
             "params": json.dumps(kwargs),
             "output": self.api.response_format
         })
@@ -345,7 +346,7 @@ class Phabricator(Resource):
         }
 
     def generate_hash(self, token):
-        return hashlib.sha1(token + self.api.certificate).hexdigest()
+        return hashlib.sha1((token + self.api.certificate).encode('utf-8')).hexdigest()
 
     def update_interfaces(self):
         query = Resource(api=self, method='conduit', endpoint='query')
