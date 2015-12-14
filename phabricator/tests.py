@@ -1,12 +1,14 @@
+from future import standard_library
+standard_library.install_aliases()
 import phabricator
 import unittest
-from StringIO import StringIO
+from io import StringIO
 from mock import patch, Mock
 
 RESPONSES = {
-    'conduit.connect': '{"result":{"connectionID":1759,"sessionKey":"lwvyv7f6hlzb2vawac6reix7ejvjty72svnir6zy","userPHID":"PHID-USER-6ij4rnamb2gsfpdkgmny"},"error_code":null,"error_info":null}',
-    'user.whoami': '{"result":{"phid":"PHID-USER-6ij4rnamz2gxfpbkamny","userName":"testaccount","realName":"Test Account"},"error_code":null,"error_info":null}',
-    'maniphest.find': '{"result":{"PHID-TASK-4cgpskv6zzys6rp5rvrc":{"id":"722","phid":"PHID-TASK-4cgpskv6zzys6rp5rvrc","authorPHID":"PHID-USER-5022a9389121884ab9db","ownerPHID":"PHID-USER-5022a9389121884ab9db","ccPHIDs":["PHID-USER-5022a9389121884ab9db","PHID-USER-ba8aeea1b3fe2853d6bb"],"status":"3","priority":"Needs Triage","title":"Relations should be two-way","description":"When adding a differential revision you can specify Maniphest Tickets to add the relation. However, this doesnt add the relation from the ticket -> the differently.(This was added via the commit message)","projectPHIDs":["PHID-PROJ-358dbc2e601f7e619232","PHID-PROJ-f58a9ac58c333f106a69"],"uri":"https:\/\/secure.phabricator.com\/T722","auxiliary":[],"objectName":"T722","dateCreated":"1325553508","dateModified":"1325618490"}},"error_code":null,"error_info":null}'
+    u'conduit.connect': u'{"result":{"connectionID":1759,"sessionKey":"lwvyv7f6hlzb2vawac6reix7ejvjty72svnir6zy","userPHID":"PHID-USER-6ij4rnamb2gsfpdkgmny"},"error_code":null,"error_info":null}',
+    u'user.whoami': u'{"result":{"phid":"PHID-USER-6ij4rnamz2gxfpbkamny","userName":"testaccount","realName":"Test Account"},"error_code":null,"error_info":null}',
+    u'maniphest.find': u'{"result":{"PHID-TASK-4cgpskv6zzys6rp5rvrc":{"id":"722","phid":"PHID-TASK-4cgpskv6zzys6rp5rvrc","authorPHID":"PHID-USER-5022a9389121884ab9db","ownerPHID":"PHID-USER-5022a9389121884ab9db","ccPHIDs":["PHID-USER-5022a9389121884ab9db","PHID-USER-ba8aeea1b3fe2853d6bb"],"status":"3","priority":"Needs Triage","title":"Relations should be two-way","description":"When adding a differential revision you can specify Maniphest Tickets to add the relation. However, this doesnt add the relation from the ticket -> the differently.(This was added via the commit message)","projectPHIDs":["PHID-PROJ-358dbc2e601f7e619232","PHID-PROJ-f58a9ac58c333f106a69"],"uri":"https:\/\/secure.phabricator.com\/T722","auxiliary":[],"objectName":"T722","dateCreated":"1325553508","dateModified":"1325618490"}},"error_code":null,"error_info":null}'
 }
 
 # Protect against local user's .arcrc interference.
@@ -26,17 +28,17 @@ class PhabricatorTest(unittest.TestCase):
         hashed = self.api.generate_hash(token)
         self.assertEquals(hashed, 'f8d3bea4e58a2b2967d93d5b307bfa7c693b2e7f')
 
-    @patch('phabricator.httplib.HTTPConnection')
+    @patch('phabricator.http.client.HTTPConnection')
     def test_connect(self, mock_connection):
         mock = mock_connection.return_value = Mock()
         mock.getresponse.return_value = StringIO(RESPONSES['conduit.connect'])
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api.connect()
-        self.assertTrue('sessionKey' in api.conduit.keys())
-        self.assertTrue('connectionID' in api.conduit.keys())
+        self.assertTrue('sessionKey' in list(api.conduit.keys()))
+        self.assertTrue('connectionID' in list(api.conduit.keys()))
 
-    @patch('phabricator.httplib.HTTPConnection')
+    @patch('phabricator.http.client.HTTPConnection')
     def test_user_whoami(self, mock_connection):
         mock = mock_connection.return_value = Mock()
         mock.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
@@ -46,7 +48,7 @@ class PhabricatorTest(unittest.TestCase):
 
         self.assertEqual('testaccount', api.user.whoami()['userName'])
 
-    @patch('phabricator.httplib.HTTPConnection')
+    @patch('phabricator.http.client.HTTPConnection')
     def test_maniphest_find(self, mock_connection):
         mock = mock_connection.return_value = Mock()
         mock.getresponse.return_value = StringIO(RESPONSES['maniphest.find'])
