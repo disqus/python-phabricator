@@ -1,6 +1,9 @@
 python-phabricator
 ==================
 
+.. image:: https://travis-ci.org/MediaMiser/python-phabricator.png?branch=master
+	:target: https://travis-ci.org/MediaMiser/python-phabricator
+
 Installation
 ------------
 
