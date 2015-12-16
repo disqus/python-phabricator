@@ -8,6 +8,11 @@ python-phabricator
 For more endpoints, see https://secure.phabricator.com/conduit/
 
 """
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 try:
     __version__ = __import__('pkg_resources') \
         .get_distribution('phabricator').version
@@ -16,14 +21,13 @@ except:
 
 import copy
 import hashlib
-import httplib
+import http.client
 import json
 import os.path
 import re
 import socket
 import time
-import urllib
-import urlparse
+from urllib import request, parse, error
 
 from collections import defaultdict
 
@@ -121,7 +125,7 @@ def parse_interfaces(interfaces):
     """
     parsed_interfaces = defaultdict(dict)
 
-    for m, d in interfaces.iteritems():
+    for m, d in interfaces.items():
         app, func = m.split('.', 1)
 
         method = parsed_interfaces[app][func] = {}
@@ -133,7 +137,7 @@ def parse_interfaces(interfaces):
         method['optional'] = {}
         method['required'] = {}
 
-        for name, type_info in dict(d['params']).iteritems():
+        for name, type_info in dict(d['params']).items():
             # Usually in the format: <optionality> <param_type>
             info_pieces = type_info.split(' ', 1)
 
@@ -200,17 +204,17 @@ class Result(object):
         self.response = state
 
     def __len__(self):
-        return len(self.response.keys())
+        return len(list(self.response.keys()))
 
     def keys(self):
-        return self.response.keys()
+        return list(self.response.keys())
 
     def iteritems(self):
-        for k, v in self.response.iteritems():
+        for k, v in self.response.items():
             yield k, v
 
     def itervalues(self):
-        for v in self.response.itervalues():
+        for v in self.response.values():
             yield v
 
 
@@ -243,7 +247,7 @@ class Resource(object):
             return isinstance(key, target)
 
         for k in resource.get('required', []):
-            if k not in [x.split(':')[0] for x in kwargs.keys()]:
+            if k not in [x.split(':')[0] for x in list(kwargs.keys())]:
                 raise ValueError('Missing required argument: %s' % k)
             if isinstance(kwargs.get(k), list) and not isinstance(resource['required'][k], list):
                 raise ValueError('Wrong argument type: %s is not a list' % k)
@@ -267,11 +271,11 @@ class Resource(object):
             self.api.connect()
             kwargs['__conduit__'] = self.api.conduit
 
-        url = urlparse.urlparse(self.api.host)
+        url = parse.urlparse(self.api.host)
         if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
+            conn = http.client.HTTPSConnection(url.netloc, timeout=self.api.timeout)
         else:
-            conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
+            conn = http.client.HTTPConnection(url.netloc, timeout=self.api.timeout)
 
         path = url.path + '%s.%s' % (self.method, self.endpoint)
 
@@ -280,7 +284,7 @@ class Resource(object):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        body = urllib.urlencode({
+        body = parse.urlencode({
             "params": json.dumps(kwargs),
             "output": self.api.response_format
         })
@@ -288,7 +292,7 @@ class Resource(object):
         # TODO: Use HTTP "method" from interfaces.json
         conn.request('POST', path, body, headers)
         response = conn.getresponse()
-        data = self._parse_response(response.read())
+        data = self._parse_response(response.read().decode('utf-8'))
 
         return Result(data['result'])
 
@@ -313,8 +317,8 @@ class Phabricator(Resource):
 
         # Set values in ~/.arcrc as defaults
         if ARCRC:
-            self.host = host if host else ARCRC['hosts'].keys()[0]
-            if token or ARCRC['hosts'][self.host].has_key('token'):
+            self.host = host if host else list(ARCRC['hosts'].keys())[0]
+            if token or 'token' in ARCRC['hosts'][self.host]:
                 self.token = token if token else ARCRC['hosts'][self.host]['token']
             else:
                 self.username = username if username else ARCRC['hosts'][self.host]['user']
@@ -355,7 +359,7 @@ class Phabricator(Resource):
         }
 
     def generate_hash(self, token):
-        return hashlib.sha1(token + self.api.certificate).hexdigest()
+        return hashlib.sha1((token + self.api.certificate).encode('utf-8')).hexdigest()
 
     def update_interfaces(self):
         query = Resource(api=self, method='conduit', endpoint='query')

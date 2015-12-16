@@ -4,3 +4,5 @@
 *.egg-info
 build/
 dist/
+.tox/
+.idea/
