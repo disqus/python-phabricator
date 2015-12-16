@@ -2,7 +2,7 @@ from future import standard_library
 standard_library.install_aliases()
 import phabricator
 import unittest
-from io import StringIO
+from io import StringIO, BytesIO
 from mock import patch, Mock
 
 RESPONSES = {
@@ -31,7 +31,7 @@ class PhabricatorTest(unittest.TestCase):
     @patch('phabricator.http.client.HTTPConnection')
     def test_connect(self, mock_connection):
         mock = mock_connection.return_value = Mock()
-        mock.getresponse.return_value = StringIO(RESPONSES['conduit.connect'])
+        mock.getresponse.return_value = BytesIO(RESPONSES['conduit.connect'].encode('utf-8'))
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api.connect()
@@ -41,7 +41,7 @@ class PhabricatorTest(unittest.TestCase):
     @patch('phabricator.http.client.HTTPConnection')
     def test_user_whoami(self, mock_connection):
         mock = mock_connection.return_value = Mock()
-        mock.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
+        mock.getresponse.return_value = BytesIO(RESPONSES['user.whoami'].encode('utf-8'))
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api.conduit = True
@@ -51,7 +51,7 @@ class PhabricatorTest(unittest.TestCase):
     @patch('phabricator.http.client.HTTPConnection')
     def test_maniphest_find(self, mock_connection):
         mock = mock_connection.return_value = Mock()
-        mock.getresponse.return_value = StringIO(RESPONSES['maniphest.find'])
+        mock.getresponse.return_value = BytesIO(RESPONSES['maniphest.find'].encode('utf-8'))
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api.conduit = True

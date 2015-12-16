@@ -292,7 +292,7 @@ class Resource(object):
         # TODO: Use HTTP "method" from interfaces.json
         conn.request('POST', path, body, headers)
         response = conn.getresponse()
-        data = self._parse_response(response.read())
+        data = self._parse_response(response.read().decode('utf-8'))
 
         return Result(data['result'])
 
