@@ -4,7 +4,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-tests_requires = ['pytest']
+tests_requires = []
 
 if sys.version_info[:2] < (2, 7):
     tests_requires.append('unittest2')
