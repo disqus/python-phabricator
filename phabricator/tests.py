@@ -37,7 +37,11 @@ phabricator.ARCRC = {}
 
 class PhabricatorTest(unittest.TestCase):
     def setUp(self):
-        self.api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
+        self.api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost'
+        )
         self.api.certificate = CERTIFICATE
 
     def test_generate_hash(self):
@@ -49,8 +53,14 @@ class PhabricatorTest(unittest.TestCase):
     def test_connect(self, mock_connection):
         mock_obj = mock_connection.return_value = mock.Mock()
         mock_obj.getresponse.return_value = StringIO(RESPONSES['conduit.connect'])
+        mock_obj.getresponse.return_value.status = 200
 
-        api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
+        api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost'
+        )
+
         api.connect()
         keys = api._conduit.keys()
         self.assertIn('sessionKey', keys)
@@ -60,16 +70,39 @@ class PhabricatorTest(unittest.TestCase):
     def test_user_whoami(self, mock_connection):
         mock_obj = mock_connection.return_value = mock.Mock()
         mock_obj.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
+        mock_obj.getresponse.return_value.status = 200
 
-        api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
+        api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost'
+        )
         api._conduit = True
 
         self.assertEqual(api.user.whoami()['userName'], 'testaccount')
 
     @mock.patch('phabricator.httplib.HTTPConnection')
+    def test_bad_status(self, mock_connection):
+        mock_obj = mock_connection.return_value = mock.Mock()
+        mock_obj.getresponse.return_value = mock.Mock()
+        mock_obj.getresponse.return_value.status = 400
+
+        api = phabricator.Phabricator(
+                username='test',
+                certificate='test',
+                host='http://localhost'
+        )
+        api._conduit = True
+
+        with self.assertRaises(phabricator.httplib.HTTPException):
+            api.user.whoami()
+
+
+    @mock.patch('phabricator.httplib.HTTPConnection')
     def test_maniphest_find(self, mock_connection):
         mock_obj = mock_connection.return_value = mock.Mock()
         mock_obj.getresponse.return_value = StringIO(RESPONSES['maniphest.find'])
+        mock_obj.getresponse.return_value.status = 200
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api._conduit = True
