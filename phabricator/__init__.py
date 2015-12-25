@@ -31,29 +31,45 @@ from ._compat import (
 __all__ = ['Phabricator']
 
 
-# Default phabricator interfaces
-INTERFACES = json.loads(open(os.path.join(os.path.dirname(__file__), 'interfaces.json'), 'r').read())
+ON_WINDOWS = os.name == 'nt'
+CURRENT_DIR = os.getcwd()
+
+
+# Default Phabricator interfaces
+INTERFACES = {}
+with open(os.path.join(os.path.dirname(__file__), 'interfaces.json')) as fobj:
+    INTERFACES = json.load(fobj)
+
 
 # Load arc config
-ARC_CONFIGS = [
+ARC_CONFIGS = (
     # System config
-    os.path.join(os.environ['ProgramData'], 'Phabricator', 'Arcanist', 'config') if os.name == 'nt' else
-    os.path.join('/etc', 'arcconfig'),
+    os.path.join(
+        os.environ['ProgramData'],
+        'Phabricator',
+        'Arcanist',
+        'config'
+    ) if ON_WINDOWS else os.path.join('/etc', 'arcconfig'),
 
     # User config
-    os.path.join(os.environ['AppData'] if os.name == 'nt' else os.path.expanduser('~'), '.arcrc'),
+    os.path.join(
+        os.environ['AppData'] if ON_WINDOWS else os.path.expanduser('~'),
+        '.arcrc'
+    ),
 
     # Project config
-    os.path.join(os.getcwd(), '.arcconfig'),
+    os.path.join(CURRENT_DIR, '.arcconfig'),
 
     # Local project config
-    os.path.join(os.getcwd(), '.git', 'arc', 'config'),
-]
+    os.path.join(CURRENT_DIR, '.git', 'arc', 'config'),
+)
 
 ARCRC = {}
 for conf in ARC_CONFIGS:
     if os.path.exists(conf):
-        ARCRC.update(json.load(open(conf, 'r')))
+        with open(conf, 'r') as fobj:
+            ARCRC.update(json.load(fobj))
+
 
 # Map Phabricator types to Python types
 PARAM_TYPE_MAP = {
