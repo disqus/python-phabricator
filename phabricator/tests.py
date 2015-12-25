@@ -52,7 +52,7 @@ class PhabricatorTest(unittest.TestCase):
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
         api.connect()
-        keys = api.conduit.keys()
+        keys = api._conduit.keys()
         self.assertIn('sessionKey', keys)
         self.assertIn('connectionID', keys)
 
@@ -62,7 +62,7 @@ class PhabricatorTest(unittest.TestCase):
         mock_obj.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
-        api.conduit = True
+        api._conduit = True
 
         self.assertEqual(api.user.whoami()['userName'], 'testaccount')
 
@@ -72,7 +72,7 @@ class PhabricatorTest(unittest.TestCase):
         mock_obj.getresponse.return_value = StringIO(RESPONSES['maniphest.find'])
 
         api = phabricator.Phabricator(username='test', certificate='test', host='http://localhost')
-        api.conduit = True
+        api._conduit = True
 
         result = api.maniphest.find(ownerphids=['PHID-USER-5022a9389121884ab9db'])
         self.assertEqual(len(result), 1)
@@ -84,7 +84,7 @@ class PhabricatorTest(unittest.TestCase):
         self.assertEqual(result['PHID-TASK-4cgpskv6zzys6rp5rvrc']['status'], '3')
 
     def test_validation(self):
-        self.api.conduit = True
+        self.api._conduit = True
 
         self.assertRaises(ValueError, self.api.differential.find)
         with self.assertRaises(ValueError):

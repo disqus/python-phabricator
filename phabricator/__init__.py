@@ -328,7 +328,7 @@ class Phabricator(Resource):
 
     def connect(self):
         if self.token:
-            self.conduit = {
+            self._conduit = {
                 'token': self.token
             }
             return
