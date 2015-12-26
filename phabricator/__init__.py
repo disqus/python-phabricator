@@ -326,7 +326,7 @@ class Phabricator(Resource):
         # Set values in ~/.arcrc as defaults
         if ARCRC:
             self.host = host if host else ARCRC['hosts'].keys()[0]
-            if token or ARCRC['hosts'][self.host].has_key('token'):
+            if token or 'token' in ARCRC['hosts'][self.host]:
                 self.token = token if token else ARCRC['hosts'][self.host]['token']
             else:
                 self.username = username if username else ARCRC['hosts'][self.host]['user']
@@ -358,8 +358,12 @@ class Phabricator(Resource):
 
         auth = Resource(api=self, method='conduit', endpoint='connect')
 
-        response = auth(user=self.username, host=self.host,
-                client=self.client, clientVersion=self.clientVersion)
+        response = auth(
+            user=self.username,
+            host=self.host,
+            client=self.client,
+            clientVersion=self.clientVersion
+        )
 
         self._conduit = {
             'sessionKey': response.sessionKey,
