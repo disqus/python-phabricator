@@ -177,7 +177,7 @@ def parse_interfaces(interfaces):
     return dict(parsed_interfaces)
 
 
-class InterfaceNotDefined(NotImplementedError):
+class ConfigurationError(Exception):
     pass
 
 
@@ -188,10 +188,6 @@ class APIError(Exception):
 
     def __str__(self):
         return '%s: %s' % (self.code, self.message)
-
-
-class InvalidAccessToken(APIError):
-    pass
 
 
 class Result(MutableMapping):
@@ -323,19 +319,19 @@ class Phabricator(Resource):
     def __init__(self, username=None, certificate=None, host=None,
             timeout=5, response_format='json', token=None, **kwargs):
 
-        # Set values in ~/.arcrc as defaults
-        if ARCRC:
-            self.host = host if host else ARCRC['hosts'].keys()[0]
-            if token or 'token' in ARCRC['hosts'][self.host]:
-                self.token = token if token else ARCRC['hosts'][self.host]['token']
-            else:
-                self.username = username if username else ARCRC['hosts'][self.host]['user']
-                self.certificate = certificate if certificate else ARCRC['hosts'][self.host]['cert']
-        else:
-            self.host = host
-            self.token = token
-            self.username = username
-            self.certificate = certificate
+        defined_hosts = ARCRC.get('hosts', {})
+
+        try:
+            self.host = host if host else defined_hosts.keys()[0]
+        except IndexError:
+            raise ConfigurationError("No host found or provided.")
+
+        current_host_config = defined_hosts.get(self.host, {})
+        self.token = token if token else current_host_config.get('token')
+
+        if self.token is None:
+            self.username = username if username else current_host_config.get('user')
+            self.certificate = certificate if certificate else current_host_config.get('cert')
 
         self.timeout = timeout
         self.response_format = response_format
