@@ -81,7 +81,6 @@ PARAM_TYPE_MAP = {
     'diffid': int,
     'diff_id': int,
     'id': int,
-    'enum': int,
 
     # bool types
     'bool': bool,
