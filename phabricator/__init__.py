@@ -103,7 +103,9 @@ PARAM_TYPE_MAP = {
     'type': string_types,
 }
 
-STR_RE = re.compile(r'([a-zA-Z_]+)')
+TYPE_INFO_COMMENT_RE = re.compile(r'\s*\([^)]+\)\s*|,.+$')
+TYPE_INFO_SPLITTER_RE = re.compile(r'(\w+(?:<.+>)?)(?:\s+|$)')
+TYPE_INFO_RE = re.compile(r'(\w+)(<[^>]+>)?(?:\s+|$)')
 
 
 def map_param_type(param_type):
@@ -112,18 +114,20 @@ def map_param_type(param_type):
     This requires a bit of logic since this isn't standardized.
     If a type doesn't map, assume str
     """
-    m = STR_RE.match(param_type)
-    main_type = m.group(0)
+    main_type, sub_type = TYPE_INFO_RE.match(param_type).groups()
 
     if main_type in ('list', 'array'):
-        info = param_type.replace(' ', '').split('<', 1)
-
         # Handle no sub-type: "required list"
-        sub_type = info[1] if len(info) > 1 else 'str'
+        if sub_type is not None:
+            sub_type = sub_type.strip()
+
+        if not sub_type:
+            sub_type = 'str'
 
         # Handle list of pairs: "optional list<pair<callsign, path>>"
-        sub_match = STR_RE.match(sub_type)
-        sub_type = sub_match.group(0).lower()
+        sub_match = TYPE_INFO_RE.match(sub_type)
+        if sub_match:
+            sub_type = sub_match.group(0).lower()
 
         return [PARAM_TYPE_MAP.setdefault(sub_type, string_types)]
 
@@ -151,25 +155,23 @@ def parse_interfaces(interfaces):
         method['required'] = {}
 
         for name, type_info in iteritems(dict(d['params'])):
+            # Set the defaults
+            optionality = 'required'
+            param_type = 'string'
+
             # Usually in the format: <optionality> <param_type>
-            info_pieces = type_info.split(' ', 1)
-
-            # If optionality isn't specified, assume required
-            if info_pieces[0] not in ('optional', 'required'):
-                optionality = 'required'
-                param_type = info_pieces[0]
-            # Just make an optional string for "ignored" params
-            elif info_pieces[0] == 'ignored':
-                optionality = 'optional'
-                param_type = 'string'
-            else:
-                optionality = info_pieces[0]
-                param_type = info_pieces[1]
-
-            # This isn't validated by the client
-            if param_type.startswith('nonempty'):
-                optionality = 'required'
-                param_type = param_type[9:]
+            type_info = TYPE_INFO_COMMENT_RE.sub('', type_info)
+            info_pieces = TYPE_INFO_SPLITTER_RE.findall(type_info)
+            for info_piece in info_pieces:
+                if info_piece in ('optional', 'required'):
+                    optionality = info_piece
+                elif info_piece == 'ignored':
+                    optionality = 'optional'
+                    param_type = 'string'
+                elif info_piece == 'nonempty':
+                    optionality = 'required'
+                else:
+                    param_type = info_piece
 
             method[optionality][name] = map_param_type(param_type)
 
@@ -238,8 +240,12 @@ class Resource(object):
 
         def validate_kwarg(key, target):
             # Always allow list
-            if isinstance(key, list):
-                return all([validate_kwarg(x, target[0]) for x in key])
+            if isinstance(target, list):
+                return (
+                    isinstance(key, (list, tuple, set)) and
+                    all(validate_kwarg(x, target[0]) for x in key)
+                )
+
             return isinstance(key, tuple(target) if isinstance(target, list) else target)
 
         for key, val in resource.get('required', {}).items():

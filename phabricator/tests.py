@@ -126,8 +126,6 @@ class PhabricatorTest(unittest.TestCase):
             self.api.differential.find(query='1')
         with self.assertRaises(ValueError):
             self.api.differential.find(query='1', guids='1')
-        with self.assertRaises(ValueError):
-            self.api.differential.find(query='1', guids=['1'])
 
 
 if __name__ == '__main__':
