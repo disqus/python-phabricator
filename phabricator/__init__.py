@@ -208,7 +208,7 @@ class Result(MutableMapping):
         return iter(self.response)
 
     def __len__(self):
-        return len(self.response.keys())
+        return len(self.response)
 
     def __repr__(self):
         return '<%s: %s>' % (type(self).__name__, repr(self.response))
