@@ -21,7 +21,7 @@ setup(
     description='Phabricator API Bindings',
     packages=find_packages(),
     zip_safe=False,
-    test_suite='nose.collector',
+    test_suite='phabricator.tests.test_phabricator',
     tests_require=tests_requires,
     include_package_data=True,
     classifiers=[
