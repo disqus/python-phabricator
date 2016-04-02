@@ -333,7 +333,7 @@ class Phabricator(Resource):
         defined_hosts = ARCRC.get('hosts', {})
 
         try:
-            self.host = host if host else defined_hosts.keys()[0]
+            self.host = host if host else list(defined_hosts.keys())[0]
         except IndexError:
             raise ConfigurationError("No host found or provided.")
 
