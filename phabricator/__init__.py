@@ -301,7 +301,13 @@ class Resource(object):
                 'Bad response status: {0}'.format(response.status)
             )
 
-        data = self._parse_response(response.read())
+        response_data = response.read()
+        if isinstance(response_data, str):
+            response = response_data
+        else:
+            response = response_data.decode("utf-8")
+
+        data = self._parse_response(response)
 
         return Result(data['result'])
 
