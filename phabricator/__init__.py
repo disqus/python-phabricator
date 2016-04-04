@@ -301,7 +301,13 @@ class Resource(object):
                 'Bad response status: {0}'.format(response.status)
             )
 
-        data = self._parse_response(response.read())
+        response_data = response.read()
+        if isinstance(response_data, str):
+            response = response_data
+        else:
+            response = response_data.decode("utf-8")
+
+        data = self._parse_response(response)
 
         return Result(data['result'])
 
@@ -327,7 +333,7 @@ class Phabricator(Resource):
         defined_hosts = ARCRC.get('hosts', {})
 
         try:
-            self.host = host if host else defined_hosts.keys()[0]
+            self.host = host if host else list(defined_hosts.keys())[0]
         except IndexError:
             raise ConfigurationError("No host found or provided.")
 
