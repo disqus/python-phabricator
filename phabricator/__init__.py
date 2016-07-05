@@ -217,18 +217,31 @@ class Result(MutableMapping):
 
 
 class Resource(object):
-    def __init__(self, api, interface=None, endpoint=None, method=None):
+    def __init__(self, api, interface=None, endpoint=None, method=None, nested=False):
         self.api = api
         self.interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
         self.endpoint = endpoint
         self.method = method
+        self.nested = nested
 
     def __getattr__(self, attr):
         if attr in getattr(self, '__dict__'):
             return getattr(self, attr)
         interface = self.interface
-        if attr not in interface:
+        if self.nested:
+            attr = "%s.%s" % (self.endpoint, attr)
+        submethod_exists = False
+        submethod_match = attr + '.'
+        for key in interface.keys():
+            if key.startswith(submethod_match):
+                submethod_exists = True
+                break
+        if attr not in interface and submethod_exists:
+            return Resource(self.api, interface, attr, self.endpoint, nested=True)
+        elif attr not in interface:
             interface[attr] = {}
+        if self.nested:
+            return Resource(self.api, interface[attr], attr, self.method)
         return Resource(self.api, interface[attr], attr, self.endpoint)
 
     def __call__(self, **kwargs):

@@ -83,6 +83,26 @@ class PhabricatorTest(unittest.TestCase):
 
         self.assertEqual(api.user.whoami()['userName'], 'testaccount')
 
+    def test_classic_resources(self):
+        api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost'
+        )
+
+        self.assertEqual(api.user.whoami.method, 'user')
+        self.assertEqual(api.user.whoami.endpoint, 'whoami')
+
+    def test_nested_resources(self):
+        api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost'
+        )
+
+        self.assertEqual(api.diffusion.repository.edit.method, 'diffusion')
+        self.assertEqual(api.diffusion.repository.edit.endpoint, 'repository.edit')
+
     @mock.patch('phabricator.httplib.HTTPConnection')
     def test_bad_status(self, mock_connection):
         mock_obj = mock_connection.return_value = mock.Mock()
