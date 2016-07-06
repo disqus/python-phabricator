@@ -139,6 +139,18 @@ class PhabricatorTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.api.differential.find(query='1', guids='1')
 
+    def test_map_param_type(self):
+        uint = 'uint'
+        self.assertEqual(phabricator.map_param_type(uint), int) 
+
+        list_bool = 'list<bool>'
+        self.assertEqual(phabricator.map_param_type(list_bool), [bool]) 
+
+        list_pair = 'list<pair<callsign, path>>'
+        self.assertEqual(phabricator.map_param_type(list_pair), [tuple]) 
+
+        complex_list_pair = 'list<pair<string-constant<"gtcm">, string>>'
+        self.assertEqual(phabricator.map_param_type(complex_list_pair), [tuple])
 
 if __name__ == '__main__':
     unittest.main()

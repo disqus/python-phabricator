@@ -103,9 +103,9 @@ PARAM_TYPE_MAP = {
     'type': string_types,
 }
 
-TYPE_INFO_COMMENT_RE = re.compile(r'\s*\([^)]+\)\s*|,.+$')
+TYPE_INFO_COMMENT_RE = re.compile(r'\s*\([^)]+\)\s*$')
 TYPE_INFO_SPLITTER_RE = re.compile(r'(\w+(?:<.+>)?)(?:\s+|$)')
-TYPE_INFO_RE = re.compile(r'(\w+)(<[^>]+>)?(?:\s+|$)')
+TYPE_INFO_RE = re.compile(r'<?(\w+)(<[^>]+>>?)?(?:.+|$)')
 
 
 def map_param_type(param_type):
@@ -127,7 +127,7 @@ def map_param_type(param_type):
         # Handle list of pairs: "optional list<pair<callsign, path>>"
         sub_match = TYPE_INFO_RE.match(sub_type)
         if sub_match:
-            sub_type = sub_match.group(0).lower()
+            sub_type = sub_match.group(1).lower()
 
         return [PARAM_TYPE_MAP.setdefault(sub_type, string_types)]
 
