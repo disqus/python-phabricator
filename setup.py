@@ -14,8 +14,8 @@ if sys.version_info[:2] <= (3, 3):
 
 setup(
     name='phabricator',
-    version='0.6.1',
-    author='DISQUS',
+    version='0.7.0',
+    author='Disqus',
     author_email='opensource@disqus.com',
     url='http://github.com/disqus/python-phabricator',
     description='Phabricator API Bindings',
@@ -31,11 +31,8 @@ setup(
         'Topic :: Software Development',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
 )
