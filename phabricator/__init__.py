@@ -288,9 +288,21 @@ class Resource(object):
 
         url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
+            proxy = os.environ.get("https_proxy")
+            if proxy:
+                proxyurl = urlparse.urlparse(proxy)
+                conn = httplib.HTTPSConnection(proxyurl.netloc, timeout=self.api.timeout)
+                conn.set_tunnel(url.netloc);
+            else:
+                conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
         else:
-            conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
+            proxy = os.environ.get("http_proxy")
+            if proxy:
+                proxyurl = urlparse.urlparse(proxy)
+                conn = httplib.HTTPConnection(proxyurl.netloc, timeout=self.api.timeout)
+                conn.set_tunnel(url.netloc);
+            else:
+                conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
 
         path = url.path + '%s.%s' % (self.method, self.endpoint)
 
