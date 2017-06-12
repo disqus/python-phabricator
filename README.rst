@@ -20,6 +20,10 @@ Use the API by instantiating it, and then calling the method through dotted nota
     phab = Phabricator()  # This will use your ~/.arcrc file
     phab.user.whoami()
 
+You can also use::
+
+    phab = Phabricator(host='https://my-phabricator.org/api/', token='api-mytoken')
+    
 Parameters are passed as keyword arguments to the resource call::
 
     phab.user.find(aliases=["sugarc0de"])
