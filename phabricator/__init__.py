@@ -170,6 +170,8 @@ def parse_interfaces(interfaces):
                     param_type = 'string'
                 elif info_piece == 'nonempty':
                     optionality = 'required'
+                elif info_piece == 'deprecated':
+                    optionality = 'optional'
                 else:
                     param_type = info_piece
 
