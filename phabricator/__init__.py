@@ -366,7 +366,7 @@ class Phabricator(Resource):
         self.clientDescription = socket.gethostname() + ':python-phabricator'
         self._conduit = None
 
-        super(Phabricator, self).__init__(self)
+        super(Phabricator, self).__init__(self, **kwargs)
 
     def _request(self, **kwargs):
         raise SyntaxError('You cannot call the Conduit API without a resource.')
