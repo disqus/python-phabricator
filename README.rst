@@ -1,18 +1,17 @@
-python-phabricator
-==================
+[![PyPI version](https://badge.fury.io/py/phabricator.svg)](https://badge.fury.io/py/phabricator)
+[![Build Status](https://travis-ci.org/disqus/python-phabricator.png?branch=master)](https://travis-ci.org/disqus/python-phabricator)
+
+# python-phabricator
 
 .. image:: https://travis-ci.org/disqus/python-phabricator.png?branch=master
     :target: https://travis-ci.org/disqus/python-phabricator
 
-Installation
-------------
-
-::
-
+## Installation
+```
     $ pip install phabricator
+```
 
-Usage
------
+## Usage
 
 Use the API by instantiating it, and then calling the method through dotted notation chaining::
 
@@ -30,8 +29,7 @@ Parameters are passed as keyword arguments to the resource call::
 
 Documentation on all methods is located at https://secure.phabricator.com/conduit/
 
-Interface out-of-date
----------------------
+## Interface out-of-date
 
 If Phabricator modifies Conduit and the included ``interfaces.json`` is out-of-date or to make sure
 to always have the latest interfaces::
