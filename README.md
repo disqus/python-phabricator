@@ -3,9 +3,6 @@
 
 # python-phabricator
 
-.. image:: https://travis-ci.org/disqus/python-phabricator.png?branch=master
-    :target: https://travis-ci.org/disqus/python-phabricator
-
 ## Installation
 ```
     $ pip install phabricator
