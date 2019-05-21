@@ -17,6 +17,7 @@ from pkg_resources import resource_string
 import json
 
 import phabricator
+from phabricator.structures import map_param_type
 
 
 RESPONSES = json.loads(
@@ -161,16 +162,17 @@ class PhabricatorTest(unittest.TestCase):
 
     def test_map_param_type(self):
         uint = 'uint'
-        self.assertEqual(phabricator.map_param_type(uint), int) 
+        self.assertEqual(map_param_type(uint), int)
 
         list_bool = 'list<bool>'
-        self.assertEqual(phabricator.map_param_type(list_bool), [bool]) 
+        self.assertEqual(map_param_type(list_bool), [bool])
 
         list_pair = 'list<pair<callsign, path>>'
-        self.assertEqual(phabricator.map_param_type(list_pair), [tuple]) 
+        self.assertEqual(map_param_type(list_pair), [tuple])
 
         complex_list_pair = 'list<pair<string-constant<"gtcm">, string>>'
-        self.assertEqual(phabricator.map_param_type(complex_list_pair), [tuple])
+        self.assertEqual(map_param_type(complex_list_pair), [tuple])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -44,7 +44,7 @@ setup(
     license=about['__license__'],
     packages=find_packages(),
     zip_safe=False,
-    test_suite='tests.test_phabricator',
+    test_suite=['tests.test_interfaces', 'tests.tests_structures'],
     install_requires=requirements2list(),
     tests_require=tests_requires,
     include_package_data=True,
