@@ -8,3 +8,4 @@ dist/
 venv/
 .idea
 z_*
+htmlcov

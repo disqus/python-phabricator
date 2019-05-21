@@ -23,7 +23,7 @@ import re
 import socket
 import time
 
-from ._compat import (
+from ._compatibility_maps import (
     MutableMapping, iteritems, string_types, httplib, urlparse, urlencode,
 )
 
@@ -343,7 +343,7 @@ class Phabricator(Resource):
     }
 
     def __init__(self, username=None, certificate=None, host=None,
-            timeout=5, response_format='json', token=None, **kwargs):
+            timeout=5, response_format='json', token=None):
 
         defined_hosts = ARCRC.get('hosts', {})
 

@@ -30,7 +30,7 @@ setup(
     description='Phabricator API Bindings',
     packages=find_packages(),
     zip_safe=False,
-    test_suite='phabricator.tests.test_phabricator',
+    test_suite='tests.test_phabricator',
     install_requires=requirements2list(),
     tests_require=tests_requires,
     include_package_data=True,

@@ -21,12 +21,12 @@ import phabricator
 
 RESPONSES = json.loads(
     resource_string(
-        'phabricator.tests.resources',
+        'tests.resources',
         'responses.json'
     ).decode('utf8')
 )
 CERTIFICATE = resource_string(
-    'phabricator.tests.resources',
+    'tests.resources',
     'certificate.txt'
 ).decode('utf8').strip()
 
