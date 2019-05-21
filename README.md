@@ -1,6 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/phabricator.svg)](https://badge.fury.io/py/phabricator)
 [![Build Status](https://travis-ci.org/disqus/python-phabricator.png?branch=master)](https://travis-ci.org/disqus/python-phabricator)
-[![coverage](https://github.com/SebastianoF/python-phabricator/blob/master/coverage.svg)]
+[![coverage](https://github.com/SebastianoF/python-phabricator/blob/master/coverage.svg)](https://github.com/SebastianoF/python-phabricator/blob/master/coverage.svg)
 
 # python-phabricator
 
