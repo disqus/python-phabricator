@@ -19,12 +19,20 @@ Use the API by instantiating it, and then calling the method through dotted nota
 You can also use::
 
     phab = Phabricator(host='https://my-phabricator.org/api/', token='api-mytoken')
-    
+
 Parameters are passed as keyword arguments to the resource call::
 
     phab.user.find(aliases=["sugarc0de"])
 
 Documentation on all methods is located at https://secure.phabricator.com/conduit/
+
+## Development
+
+To run the unittests, run
+```
+python -m unittest discover
+```
+where `python` is an interpreter with python-phabricator installed.
 
 ## Interface out-of-date
 
