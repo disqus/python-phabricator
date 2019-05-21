@@ -1,0 +1,2 @@
+[run]
+omit = phabricator/_compatibility_maps.py, tests/*
