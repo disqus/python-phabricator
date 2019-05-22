@@ -195,7 +195,5 @@ class Phabricator(Resource):
 
     def update_interfaces(self):
         query = Resource(api=self, method='conduit', endpoint='query')
-
         interfaces = query()
-
         self.interface = st.parse_interfaces(interfaces)
