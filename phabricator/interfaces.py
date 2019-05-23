@@ -70,6 +70,7 @@ class Resource(object):
                     raise ValueError('Wrong argument type: %s is not a list of %ss' % (key, val[0]))
                 raise ValueError('Wrong argument type: %s is not a %s' % (key, val))
 
+        # noinspection PyProtectedMember
         conduit = self.api._conduit
 
         if conduit:
@@ -83,7 +84,7 @@ class Resource(object):
         else:
             # Authorization is required, silently auth the user
             self.api.connect()
-            kwargs['__conduit__'] = self.api._conduit
+            kwargs['__conduit__'] = conduit
 
         url = urlparse.urlparse(self.api.host)
         if url.scheme == 'https':
