@@ -37,8 +37,7 @@ CURRENT_DIR = os.getcwd()
 
 
 # Default Phabricator interfaces
-json_data = pkgutil.get_data(__name__, 'interfaces.json').decode('utf-8')
-INTERFACES = json.loads(json_data)
+INTERFACES = json.loads(pkgutil.get_data(__name__, 'interfaces.json').decode('utf-8'))
 
 
 # Load arc config
