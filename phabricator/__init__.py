@@ -22,6 +22,7 @@ import os.path
 import re
 import socket
 import time
+import pkgutil
 
 from ._compat import (
     MutableMapping, iteritems, string_types, httplib, urlparse, urlencode,
@@ -36,9 +37,7 @@ CURRENT_DIR = os.getcwd()
 
 
 # Default Phabricator interfaces
-INTERFACES = {}
-with open(os.path.join(os.path.dirname(__file__), 'interfaces.json')) as fobj:
-    INTERFACES = json.load(fobj)
+INTERFACES = json.loads(pkgutil.get_data(__name__, 'interfaces.json'))
 
 
 # Load arc config
