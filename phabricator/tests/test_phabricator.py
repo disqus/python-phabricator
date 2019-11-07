@@ -56,6 +56,7 @@ class PhabricatorTest(unittest.TestCase):
             RESPONSES['conduit.connect']
         )
         mock_obj.getresponse.return_value.status = 200
+        mock_obj.close = mock.Mock()
 
         api = phabricator.Phabricator(
             username='test',
@@ -67,6 +68,7 @@ class PhabricatorTest(unittest.TestCase):
         keys = api._conduit.keys()
         self.assertIn('sessionKey', keys)
         self.assertIn('connectionID', keys)
+        mock_obj.close.assert_called_once_with()
 
     @mock.patch('phabricator.httplib.HTTPConnection')
     def test_user_whoami(self, mock_connection):
@@ -108,6 +110,7 @@ class PhabricatorTest(unittest.TestCase):
         mock_obj = mock_connection.return_value = mock.Mock()
         mock_obj.getresponse.return_value = mock.Mock()
         mock_obj.getresponse.return_value.status = 400
+        mock_obj.close = mock.Mock()
 
         api = phabricator.Phabricator(
                 username='test',
@@ -118,6 +121,7 @@ class PhabricatorTest(unittest.TestCase):
 
         with self.assertRaises(phabricator.httplib.HTTPException):
             api.user.whoami()
+        mock_obj.close.assert_called_once_with()
 
     @mock.patch('phabricator.httplib.HTTPConnection')
     def test_maniphest_find(self, mock_connection):

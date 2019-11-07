@@ -312,11 +312,13 @@ class Resource(object):
 
         # Make sure we got a 2xx response indicating success
         if not response.status >= 200 or not response.status < 300:
+            conn.close()
             raise httplib.HTTPException(
                 'Bad response status: {0}'.format(response.status)
             )
 
         response_data = response.read()
+        conn.close()
         if isinstance(response_data, str):
             response = response_data
         else:
