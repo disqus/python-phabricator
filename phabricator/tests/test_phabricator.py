@@ -176,5 +176,13 @@ class PhabricatorTest(unittest.TestCase):
         complex_list_pair = 'list<pair<string-constant<"gtcm">, string>>'
         self.assertEqual(phabricator.map_param_type(complex_list_pair), [tuple])
 
+    def test_endpoint_shadowing(self):
+        shadowed_endpoints = [e for e in self.api.interface.keys() if e in self.api.__dict__]
+        self.assertEqual(
+            shadowed_endpoints,
+            [],
+            "The following endpoints are shadowed: {}".format(shadowed_endpoints)
+        )
+
 if __name__ == '__main__':
     unittest.main()
