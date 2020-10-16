@@ -23,9 +23,10 @@ import re
 import socket
 import pkgutil
 import time
+import requests
 
 from ._compat import (
-    MutableMapping, iteritems, string_types, httplib, urlparse, urlencode,
+    MutableMapping, iteritems, string_types, urlencode,
 )
 
 
@@ -290,43 +291,28 @@ class Resource(object):
             self.api.connect()
             kwargs['__conduit__'] = self.api._conduit
 
-        url = urlparse.urlparse(self.api.host)
-        if url.scheme == 'https':
-            conn = httplib.HTTPSConnection(url.netloc, timeout=self.api.timeout)
-        else:
-            conn = httplib.HTTPConnection(url.netloc, timeout=self.api.timeout)
-
-        path = url.path + '%s.%s' % (self.method, self.endpoint)
 
         headers = {
             'User-Agent': 'python-phabricator/%s' % str(self.api.clientVersion),
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        body = urlencode({
+        body = {
             "params": json.dumps(kwargs),
             "output": self.api.response_format
-        })
+        }
 
         # TODO: Use HTTP "method" from interfaces.json
-        conn.request('POST', path, body, headers)
-        response = conn.getresponse()
+        path = '%s%s.%s' % (self.api.host, self.method, self.endpoint)
+        response = requests.post(path, data=body, headers=headers, timeout=self.api.timeout)
 
         # Make sure we got a 2xx response indicating success
-        if not response.status >= 200 or not response.status < 300:
-            conn.close()
-            raise httplib.HTTPException(
-                'Bad response status: {0}'.format(response.status)
+        if not response.status_code >= 200 or not response.status_code < 300:
+            raise requests.exceptions.HTTPError(
+                'Bad response status: {0}'.format(response.status_code)
             )
 
-        response_data = response.read()
-        conn.close()
-        if isinstance(response_data, str):
-            response = response_data
-        else:
-            response = response_data.decode("utf-8")
-
-        data = self._parse_response(response)
+        data = self._parse_response(response.text)
 
         return Result(data['result'])
 

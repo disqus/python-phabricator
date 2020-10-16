@@ -4,7 +4,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-tests_requires = []
+tests_requires = ['responses>=0.12']
 
 if sys.version_info[:2] < (2, 7):
     tests_requires.append('unittest2')
@@ -21,8 +21,11 @@ setup(
     description='Phabricator API Bindings',
     packages=find_packages(),
     zip_safe=False,
+    install_requires=['requests>=2.22'],
     test_suite='phabricator.tests.test_phabricator',
-    tests_require=tests_requires,
+    extras_require={
+        'tests': tests_requires,
+    },
     include_package_data=True,
     classifiers=[
         'Intended Audience :: Developers',

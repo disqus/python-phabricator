@@ -8,16 +8,6 @@ except ImportError:
     from collections import MutableMapping
 
 try:
-    import httplib
-except ImportError:
-    import http.client as httplib
-
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
-
-try:
     from urllib import urlencode
 except ImportError:
     from urllib.parse import urlencode

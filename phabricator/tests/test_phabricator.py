@@ -3,20 +3,14 @@ try:
 except ImportError:
     import unittest
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-try:
-    import unittest.mock as mock
-except ImportError:
-    import mock
+import requests
+import responses
 
 from pkg_resources import resource_string
 import json
 
 import phabricator
+phabricator.ARCRC = {}  # overwrite any arcrc that might be read
 
 
 RESPONSES = json.loads(
@@ -40,7 +34,7 @@ class PhabricatorTest(unittest.TestCase):
         self.api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
         )
         self.api.certificate = CERTIFICATE
 
@@ -49,37 +43,32 @@ class PhabricatorTest(unittest.TestCase):
         hashed = self.api.generate_hash(token)
         self.assertEqual(hashed, 'f8d3bea4e58a2b2967d93d5b307bfa7c693b2e7f')
 
-    @mock.patch('phabricator.httplib.HTTPConnection')
-    def test_connect(self, mock_connection):
-        mock_obj = mock_connection.return_value = mock.Mock()
-        mock_obj.getresponse.return_value = StringIO(
-            RESPONSES['conduit.connect']
-        )
-        mock_obj.getresponse.return_value.status = 200
-        mock_obj.close = mock.Mock()
+    @responses.activate
+    def test_connect(self):
+        responses.add('POST', 'http://localhost/api/conduit.connect',
+                      body=RESPONSES['conduit.connect'], status=200)
 
         api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
         )
 
         api.connect()
         keys = api._conduit.keys()
         self.assertIn('sessionKey', keys)
         self.assertIn('connectionID', keys)
-        mock_obj.close.assert_called_once_with()
+        assert len(responses.calls) == 1
 
-    @mock.patch('phabricator.httplib.HTTPConnection')
-    def test_user_whoami(self, mock_connection):
-        mock_obj = mock_connection.return_value = mock.Mock()
-        mock_obj.getresponse.return_value = StringIO(RESPONSES['user.whoami'])
-        mock_obj.getresponse.return_value.status = 200
+    @responses.activate
+    def test_user_whoami(self):
+        responses.add('POST', 'http://localhost/api/user.whoami',
+                      body=RESPONSES['user.whoami'], status=200)
 
         api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
         )
         api._conduit = True
 
@@ -89,7 +78,7 @@ class PhabricatorTest(unittest.TestCase):
         api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
         )
 
         self.assertEqual(api.user.whoami.method, 'user')
@@ -99,42 +88,37 @@ class PhabricatorTest(unittest.TestCase):
         api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
         )
 
         self.assertEqual(api.diffusion.repository.edit.method, 'diffusion')
-        self.assertEqual(api.diffusion.repository.edit.endpoint, 'repository.edit')
+        self.assertEqual(
+            api.diffusion.repository.edit.endpoint, 'repository.edit')
 
-    @mock.patch('phabricator.httplib.HTTPConnection')
-    def test_bad_status(self, mock_connection):
-        mock_obj = mock_connection.return_value = mock.Mock()
-        mock_obj.getresponse.return_value = mock.Mock()
-        mock_obj.getresponse.return_value.status = 400
-        mock_obj.close = mock.Mock()
-
-        api = phabricator.Phabricator(
-                username='test',
-                certificate='test',
-                host='http://localhost'
-        )
-        api._conduit = True
-
-        with self.assertRaises(phabricator.httplib.HTTPException):
-            api.user.whoami()
-        mock_obj.close.assert_called_once_with()
-
-    @mock.patch('phabricator.httplib.HTTPConnection')
-    def test_maniphest_find(self, mock_connection):
-        mock_obj = mock_connection.return_value = mock.Mock()
-        mock_obj.getresponse.return_value = StringIO(
-            RESPONSES['maniphest.find']
-        )
-        mock_obj.getresponse.return_value.status = 200
+    @responses.activate
+    def test_bad_status(self):
+        responses.add(
+            'POST', 'http://localhost/api/conduit.connect', status=400)
 
         api = phabricator.Phabricator(
             username='test',
             certificate='test',
-            host='http://localhost'
+            host='http://localhost/api/'
+        )
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            api.user.whoami()
+        assert len(responses.calls) == 1
+
+    @responses.activate
+    def test_maniphest_find(self):
+        responses.add('POST', 'http://localhost/api/maniphest.find',
+                      body=RESPONSES['maniphest.find'], status=200)
+
+        api = phabricator.Phabricator(
+            username='test',
+            certificate='test',
+            host='http://localhost/api/'
         )
         api._conduit = True
 
@@ -165,16 +149,18 @@ class PhabricatorTest(unittest.TestCase):
 
     def test_map_param_type(self):
         uint = 'uint'
-        self.assertEqual(phabricator.map_param_type(uint), int) 
+        self.assertEqual(phabricator.map_param_type(uint), int)
 
         list_bool = 'list<bool>'
-        self.assertEqual(phabricator.map_param_type(list_bool), [bool]) 
+        self.assertEqual(phabricator.map_param_type(list_bool), [bool])
 
         list_pair = 'list<pair<callsign, path>>'
-        self.assertEqual(phabricator.map_param_type(list_pair), [tuple]) 
+        self.assertEqual(phabricator.map_param_type(list_pair), [tuple])
 
         complex_list_pair = 'list<pair<string-constant<"gtcm">, string>>'
-        self.assertEqual(phabricator.map_param_type(complex_list_pair), [tuple])
+        self.assertEqual(phabricator.map_param_type(
+            complex_list_pair), [tuple])
+
 
     def test_endpoint_shadowing(self):
         shadowed_endpoints = [e for e in self.api.interface.keys() if e in self.api.__dict__]
