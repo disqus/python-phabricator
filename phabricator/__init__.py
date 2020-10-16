@@ -357,9 +357,9 @@ class Phabricator(Resource):
             raise ConfigurationError("No host found or provided.")
 
         current_host_config = defined_hosts.get(self.host, {})
-        self.token = token if token else current_host_config.get('token')
+        self.conduit_token = token if token else current_host_config.get('token')
 
-        if self.token is None:
+        if self.conduit_token is None:
             self.username = username if username else current_host_config.get('user')
             self.certificate = certificate if certificate else current_host_config.get('cert')
 
@@ -376,9 +376,9 @@ class Phabricator(Resource):
         raise SyntaxError('You cannot call the Conduit API without a resource.')
 
     def connect(self):
-        if self.token:
+        if self.conduit_token:
             self._conduit = {
-                'token': self.token
+                'token': self.conduit_token
             }
             return
 
