@@ -1,3 +1,12 @@
+0.8.0
+
+* Switch to using requests
+* Allow library to be used from a zip archive
+* Deprecated parameters are now set to optional
+* Fixed bug where instance attribute was shadowing API endpoint
+* Update interfaces.json
+* Update README
+
 0.7.0
 
 * Allow for nested methods to support conduit calls such as diffusion.repository.edit
