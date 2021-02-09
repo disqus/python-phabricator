@@ -224,7 +224,7 @@ class Result(MutableMapping):
 class Resource(object):
     def __init__(self, api, interface=None, endpoint=None, method=None, nested=False):
         self.api = api
-        self.interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
+        self._interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
         self.endpoint = endpoint
         self.method = method
         self.nested = nested
@@ -232,7 +232,7 @@ class Resource(object):
     def __getattr__(self, attr):
         if attr in getattr(self, '__dict__'):
             return getattr(self, attr)
-        interface = self.interface
+        interface = self._interface
         if self.nested:
             attr = "%s.%s" % (self.endpoint, attr)
         submethod_exists = False
@@ -254,7 +254,7 @@ class Resource(object):
 
     def _request(self, **kwargs):
         # Check for missing variables
-        resource = self.interface
+        resource = self._interface
 
         def validate_kwarg(key, target):
             # Always allow list
@@ -391,4 +391,4 @@ class Phabricator(Resource):
 
         interfaces = query()
 
-        self.interface = parse_interfaces(interfaces)
+        self._interface = parse_interfaces(interfaces)
