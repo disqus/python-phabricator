@@ -163,7 +163,7 @@ class PhabricatorTest(unittest.TestCase):
 
 
     def test_endpoint_shadowing(self):
-        shadowed_endpoints = [e for e in self.api.interface.keys() if e in self.api.__dict__]
+        shadowed_endpoints = [e for e in self.api._interface.keys() if e in self.api.__dict__]
         self.assertEqual(
             shadowed_endpoints,
             [],
