@@ -45,6 +45,7 @@ INTERFACES = json.loads(
 
 
 # Load arc config
+ARCRC = {}
 ARC_CONFIGS = (
     # System config
     os.path.join(
@@ -67,11 +68,17 @@ ARC_CONFIGS = (
     os.path.join(CURRENT_DIR, '.git', 'arc', 'config'),
 )
 
-ARCRC = {}
-for conf in ARC_CONFIGS:
-    if os.path.exists(conf):
-        with open(conf, 'r') as fobj:
+
+def update_arcrc(config_path=""):
+    """Read a config file as JSON and update ARCRC.
+    """
+    if config_path and os.path.exists(config_path):
+        with open(config_path, 'r') as fobj:
             ARCRC.update(json.load(fobj))
+
+
+for config in ARC_CONFIGS:
+    update_arcrc(config)
 
 
 # Map Phabricator types to Python types
@@ -332,9 +339,10 @@ class Phabricator(Resource):
         'json': lambda x: json.loads(x),
     }
 
-    def __init__(self, username=None, certificate=None, host=None,
-            timeout=5, response_format='json', token=None, **kwargs):
+    def __init__(self, username=None, certificate=None, host=None, timeout=5,
+                 response_format='json', token=None, config_path=None, **kwargs):
 
+        update_arcrc(config_path)
         defined_hosts = ARCRC.get('hosts', {})
 
         try:
