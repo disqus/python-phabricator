@@ -69,7 +69,7 @@ ARC_CONFIGS = (
 )
 
 
-def update_arcrc(config_path=""):
+def update_arcrc(config_path):
     """Read a config file as JSON and update ARCRC.
     """
     if config_path and os.path.exists(config_path):
