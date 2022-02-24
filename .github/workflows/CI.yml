@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v2.4.0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2.3.2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Bootstrap poetry
+        shell: bash
+        run: curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Configure poetry
+        shell: bash
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        shell: bash
+        run: poetry install
+
+      - name: Run pytest
+        shell: bash
+        run: poetry run python -m phabricator.tests.test_phabricator 
