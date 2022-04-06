@@ -231,9 +231,9 @@ class Resource(object):
         self.nested = nested
         self.session = requests.Session()
         retry_strategy = Retry(
-            total=5,
-            status_forcelist=[429, 500, 502, 503, 504],
-            method_whitelist=["HEAD", "GET", "OPTIONS"]
+            total=3,
+            connect=3,
+            method_whitelist=["HEAD", "GET", "POST", "PATCH", "PUT", "OPTIONS"]
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("https://", adapter)
