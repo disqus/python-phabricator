@@ -24,6 +24,7 @@ import socket
 import pkgutil
 import time
 import requests
+from requests.adapters import HTTPAdapter, Retry
 
 from ._compat import (
     MutableMapping, iteritems, string_types, urlencode,
@@ -228,6 +229,15 @@ class Resource(object):
         self.endpoint = endpoint
         self.method = method
         self.nested = nested
+        self.session = requests.Session()
+        adapter = HTTPAdapter(max_retries=Retry(
+            total=3,
+            connect=3,
+            allowed_methods=["HEAD", "GET", "POST", "PATCH", "PUT", "OPTIONS"]
+        ))
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
 
     def __getattr__(self, attr):
         if attr in getattr(self, '__dict__'):
@@ -304,7 +314,7 @@ class Resource(object):
 
         # TODO: Use HTTP "method" from interfaces.json
         path = '%s%s.%s' % (self.api.host, self.method, self.endpoint)
-        response = requests.post(path, data=body, headers=headers, timeout=self.api.timeout)
+        response = self.session.post(path, data=body, headers=headers, timeout=self.api.timeout)
 
         # Make sure we got a 2xx response indicating success
         if not response.status_code >= 200 or not response.status_code < 300:
