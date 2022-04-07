@@ -1,3 +1,7 @@
+0.9.0
+
+* Add default retry to API calls.
+
 0.8.1
 
 * Fixed bug where built-in interface dict overwrote `interface` methods from Almanac (`interface.search`, `interface.edit`). The `Resource` attribute `interface` is renamed `_interface`.

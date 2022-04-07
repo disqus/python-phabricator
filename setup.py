@@ -14,7 +14,7 @@ if sys.version_info[:2] <= (3, 3):
 
 setup(
     name='phabricator',
-    version='0.8.1',
+    version='0.9.0',
     author='Disqus',
     author_email='opensource@disqus.com',
     url='http://github.com/disqus/python-phabricator',
