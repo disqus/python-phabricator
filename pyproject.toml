@@ -1,25 +1,26 @@
 [tool.poetry]
 name = "phabricator"
-version = "0.8.1"
-description = "Phabricator API Bindings"
+version = "0.10.0"
 authors = ["Disqus <opensource@disqus.com>"]
+repository = "http://github.com/disqus/python-phabricator"
+description = "Phabricator API Bindings"
 classifiers=[
     'Intended Audience :: Developers',
     'Intended Audience :: System Administrators',
     'Operating System :: OS Independent',
     'Topic :: Software Development',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
 ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
 
 [tool.poetry.dev-dependencies]
-mock = "^4.0.3"
 responses = "^0.18.0"
 
 [build-system]
