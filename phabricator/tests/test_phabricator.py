@@ -167,7 +167,7 @@ class PhabricatorTest(unittest.TestCase):
         self.assertEqual(
             shadowed_endpoints,
             [],
-            "The following endpoints are shadowed: {}".format(shadowed_endpoints)
+            f"The following endpoints are shadowed: {shadowed_endpoints}"
         )
 
 if __name__ == '__main__':

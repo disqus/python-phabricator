@@ -23,12 +23,9 @@ import re
 import socket
 import pkgutil
 import time
+from typing import MutableMapping
 import requests
 from requests.adapters import HTTPAdapter, Retry
-
-from ._compat import (
-    MutableMapping, iteritems, string_types, urlencode,
-)
 
 
 __all__ = ['Phabricator']
@@ -71,7 +68,7 @@ ARC_CONFIGS = (
 ARCRC = {}
 for conf in ARC_CONFIGS:
     if os.path.exists(conf):
-        with open(conf, 'r') as fobj:
+        with open(conf) as fobj:
             ARCRC.update(json.load(fobj))
 
 
@@ -100,11 +97,11 @@ PARAM_TYPE_MAP = {
     'pair': tuple,
 
     # str types
-    'str': string_types,
-    'string': string_types,
-    'phid': string_types,
-    'guids': string_types,
-    'type': string_types,
+    'str': str,
+    'string': str,
+    'phid': str,
+    'guids': str,
+    'type': str,
 }
 
 TYPE_INFO_COMMENT_RE = re.compile(r'\s*\([^)]+\)\s*$')
@@ -133,9 +130,9 @@ def map_param_type(param_type):
         if sub_match:
             sub_type = sub_match.group(1).lower()
 
-        return [PARAM_TYPE_MAP.setdefault(sub_type, string_types)]
+        return [PARAM_TYPE_MAP.setdefault(sub_type, str)]
 
-    return PARAM_TYPE_MAP.setdefault(main_type, string_types)
+    return PARAM_TYPE_MAP.setdefault(main_type, str)
 
 
 def parse_interfaces(interfaces):
@@ -146,7 +143,7 @@ def parse_interfaces(interfaces):
     """
     parsed_interfaces = collections.defaultdict(dict)
 
-    for m, d in iteritems(interfaces):
+    for m, d in interfaces.items():
         app, func = m.split('.', 1)
 
         method = parsed_interfaces[app][func] = {}
@@ -158,7 +155,7 @@ def parse_interfaces(interfaces):
         method['optional'] = {}
         method['required'] = {}
 
-        for name, type_info in iteritems(dict(d['params'])):
+        for name, type_info in dict(d['params']).items():
             # Set the defaults
             optionality = 'required'
             param_type = 'string'
@@ -194,7 +191,7 @@ class APIError(Exception):
         self.message = message
 
     def __str__(self):
-        return '%s: %s' % (self.code, self.message)
+        return f'{self.code}: {self.message}'
 
 
 class Result(MutableMapping):
@@ -219,10 +216,10 @@ class Result(MutableMapping):
         return len(self.response)
 
     def __repr__(self):
-        return '<%s: %s>' % (type(self).__name__, repr(self.response))
+        return f'<{type(self).__name__}: {repr(self.response)}>'
 
 
-class Resource(object):
+class Resource:
     def __init__(self, api, interface=None, endpoint=None, method=None, nested=False):
         self.api = api
         self._interface = interface or copy.deepcopy(parse_interfaces(INTERFACES))
@@ -244,7 +241,7 @@ class Resource(object):
             return getattr(self, attr)
         interface = self._interface
         if self.nested:
-            attr = "%s.%s" % (self.endpoint, attr)
+            attr = f"{self.endpoint}.{attr}"
         submethod_exists = False
         submethod_match = attr + '.'
         for key in interface.keys():
@@ -283,8 +280,8 @@ class Resource(object):
                 raise ValueError('Wrong argument type: %s is not a list' % key)
             elif not validate_kwarg(kwargs.get(key), val):
                 if isinstance(val, list):
-                    raise ValueError('Wrong argument type: %s is not a list of %ss' % (key, val[0]))
-                raise ValueError('Wrong argument type: %s is not a %s' % (key, val))
+                    raise ValueError(f'Wrong argument type: {key} is not a list of {val[0]}s')
+                raise ValueError(f'Wrong argument type: {key} is not a {val}')
 
         conduit = self.api._conduit
 
@@ -313,13 +310,13 @@ class Resource(object):
         }
 
         # TODO: Use HTTP "method" from interfaces.json
-        path = '%s%s.%s' % (self.api.host, self.method, self.endpoint)
+        path = f'{self.api.host}{self.method}.{self.endpoint}'
         response = self.session.post(path, data=body, headers=headers, timeout=self.api.timeout)
 
         # Make sure we got a 2xx response indicating success
         if not response.status_code >= 200 or not response.status_code < 300:
             raise requests.exceptions.HTTPError(
-                'Bad response status: {0}'.format(response.status_code)
+                f'Bad response status: {response.status_code}'
             )
 
         data = self._parse_response(response.text)
@@ -366,7 +363,7 @@ class Phabricator(Resource):
         self.clientDescription = socket.gethostname() + ':python-phabricator'
         self._conduit = None
 
-        super(Phabricator, self).__init__(self, **kwargs)
+        super().__init__(self, **kwargs)
 
     def _request(self, **kwargs):
         raise SyntaxError('You cannot call the Conduit API without a resource.')
