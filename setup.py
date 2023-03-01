@@ -21,7 +21,10 @@ setup(
     description='Phabricator API Bindings',
     packages=find_packages(),
     zip_safe=False,
-    install_requires=['requests>=2.26'],
+    install_requires=[
+        'requests>=2.26',
+        'urllib3>=1.26',
+    ],
     test_suite='phabricator.tests.test_phabricator',
     extras_require={
         'tests': tests_requires,
